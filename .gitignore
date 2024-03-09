@@ -1,0 +1,15 @@
+# Directories
+.vs/
+Binaries/
+
+# Rider
+.idea/
+*.DotSettings.user
+
+# Files
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.sln
+*.log
+Makefile
