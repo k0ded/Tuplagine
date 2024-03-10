@@ -1,2 +1,2 @@
 ﻿#include "tgpch.h"
-#include "Material.h"
+#include "Entity.h"

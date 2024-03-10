@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "RenderingAssets.h"
 #include "Tupla/Core/Window.h"
 
 namespace Tupla
@@ -19,6 +20,7 @@ namespace Tupla
         virtual ~Renderer() = default;
 
         virtual Scope<Window> StartWindow(const WindowProps& props) = 0;
+        virtual RenderingAssets* GetRenderingAssets() { return m_RenderingAssets.get(); }
 
         virtual void BeginFrame() = 0;
         virtual void EndFrame() = 0;
@@ -28,5 +30,8 @@ namespace Tupla
         virtual RenderImpl GetActiveImplementation() = 0;
         virtual const char* GetName() = 0;
         virtual std::string ToString() { return GetName(); }
+
+    protected:
+        Scope<RenderingAssets> m_RenderingAssets;
     };
 }

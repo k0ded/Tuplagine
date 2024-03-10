@@ -197,6 +197,12 @@ namespace CommonUtilities
         return x * aVector.x + y * aVector.y;
     }
 
+    template <class T>
+    bool operator==(const Vector2<T>& aVector0, const Vector2<T>& aVector1)
+    {
+        return aVector0.x == aVector1.x && aVector0.y == aVector1.y; 
+    }
+    
     //Returns the vector sum of aVector0 and aVector1
     template <class T>
     Vector2<T> operator+(const Vector2<T>& aVector0, const Vector2<T>& aVector1)
@@ -273,6 +279,11 @@ namespace CommonUtilities
     {
         aVector = aVector / aScalar;
     }
+    
+    typedef Vector2<unsigned>   Vector2ui;
+    typedef Vector2<double>     Vector2d;
+    typedef Vector2<float>      Vector2f;
+    typedef Vector2<int>        Vector2i;
 }
 
 namespace CU = CommonUtilities;

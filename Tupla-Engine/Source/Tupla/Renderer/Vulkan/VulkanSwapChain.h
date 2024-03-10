@@ -26,6 +26,7 @@ namespace Tupla
         [[nodiscard]] VkFramebuffer GetFrameBuffer(const int index) const { return m_SwapChainFrameBuffers[index]; }
         [[nodiscard]] VkRenderPass GetRenderPass() const { return m_RenderPass; }
         [[nodiscard]] VkImageView GetImageView(const int index) const { return m_SwapChainImageViews[index]; }
+        [[nodiscard]] VkImageView GetDepthView(const int index) const { return m_DepthImageViews[index]; }
         [[nodiscard]] size_t ImageCount() const { return m_SwapChainImages.size(); }
         [[nodiscard]] VkFormat GetSwapChainImageFormat() const { return m_SwapChainImageFormat; }
         [[nodiscard]] VkExtent2D GetSwapChainExtent() const { return m_SwapChainExtent; }
@@ -40,7 +41,7 @@ namespace Tupla
         [[nodiscard]] VkFormat FindDepthFormat() const;
 
         VkResult AcquireNextImage(uint32_t* imageIndex) const;
-        VkResult SubmitCommandBuffers(const VkCommandBuffer* buffers, const uint32_t* imageIndex);
+        VkResult SubmitCommandBuffers(const VkCommandBuffer* buffers, const uint32_t* imageIndex, u32 bufferCount = 1);
 
         [[nodiscard]] bool CompareSwapFormats(const VulkanSwapChain& swapChain) const
         {

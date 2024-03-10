@@ -74,7 +74,7 @@ namespace Tupla
         return result;
     }
 
-    VkResult VulkanSwapChain::SubmitCommandBuffers(const VkCommandBuffer* buffers, const uint32_t* imageIndex)
+    VkResult VulkanSwapChain::SubmitCommandBuffers(const VkCommandBuffer* buffers, const uint32_t* imageIndex, u32 bufferCount)
     {
         if (m_ImagesInFlight[*imageIndex] != VK_NULL_HANDLE)
         {
@@ -91,7 +91,7 @@ namespace Tupla
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
 
-        submitInfo.commandBufferCount = 1;
+        submitInfo.commandBufferCount = bufferCount;
         submitInfo.pCommandBuffers = buffers;
 
         const VkSemaphore signalSemaphores[] = {m_RenderFinishedSemaphores[m_CurrentFrame]};

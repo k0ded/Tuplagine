@@ -2,6 +2,7 @@
 #include "VulkanRenderer.h"
 
 #include "VulkanWindow.h"
+#include "Assets/VulkanRenderingAssets.h"
 #include "GLFW/glfw3.h"
 
 #include "imgui/imgui.h"
@@ -13,6 +14,7 @@ namespace Tupla
     VulkanRenderer::~VulkanRenderer()
     {
         FreeCommandBuffers();
+        FreeSampler();
         ShutdownImGui();
     }
 
@@ -21,9 +23,11 @@ namespace Tupla
         Scope<Window> win = CreateScope<VulkanWindow>(props);
         m_Window = dynamic_cast<VulkanWindow*>(win.get());
         m_Device = CreateScope<VulkanDevice>(*m_Window);
+        m_RenderingAssets = CreateScope<VulkanRenderingAssets>(*m_Device);
         
         RecreateSwapChain();
         CreateCommandBuffers();
+        CreateSampler();
         StartImGui();
         
         return std::move(win);
@@ -49,7 +53,7 @@ namespace Tupla
 
         m_IsFrameStarted = true;
 
-        const auto commandBuffer = GetCurrentCommandBuffer();
+        const auto commandBuffer = m_ViewportCommandBuffer[m_CurrentFrameIndex];
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -58,7 +62,7 @@ namespace Tupla
             throw std::runtime_error("failed to begin recording command buffer!");
         }
 
-        BeginSwapChainRenderPass(commandBuffer);
+        BeginRenderPass(commandBuffer, m_ViewportPass, m_ViewportTexture[m_CurrentFrameIndex].GetFramebuffer());
     }
 
     void VulkanRenderer::EndFrame()
@@ -66,14 +70,15 @@ namespace Tupla
         assert(m_IsFrameStarted && "Can't call EndFrame while frame is not in progress");
 
         const auto commandBuffer = GetCurrentCommandBuffer();
-        EndSwapChainRenderPass(commandBuffer);
+        EndRenderPass(commandBuffer);
 
         if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to record command buffer!");
         }
     
-        const auto result = m_SwapChain->SubmitCommandBuffers(&commandBuffer, &m_CurrentImage);
+        std::vector<VkCommandBuffer> commandBuffers = { m_ViewportCommandBuffer[m_CurrentFrameIndex], commandBuffer };
+        const auto result = m_SwapChain->SubmitCommandBuffers(commandBuffers.data(), &m_CurrentImage, 2);
         if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_Window->WasWindowResized())
         {
             m_Window->ResetWindowResizeFlag();
@@ -89,15 +94,60 @@ namespace Tupla
 
     void VulkanRenderer::BeginGUIFrame()
     {
+        EndRenderPass(m_ViewportCommandBuffer[m_CurrentFrameIndex]);
+        vkEndCommandBuffer(m_ViewportCommandBuffer[m_CurrentFrameIndex]);
+
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        vkBeginCommandBuffer(GetCurrentCommandBuffer(), &beginInfo);
+        BeginRenderPass(GetCurrentCommandBuffer());
+
+        
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        ImGui::Begin("Viewport");
+        const ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+        ImGui::Image(m_DescriptorSet[m_CurrentFrameIndex], ImVec2{viewportPanelSize.x, viewportPanelSize.y});
+        ImGui::End();
     }
 
     void VulkanRenderer::EndGUIFrame()
     {
         ImGui::Render();
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), GetCurrentCommandBuffer());
+    }
+
+    void VulkanRenderer::CreateSampler()
+    {
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.anisotropyEnable = VK_FALSE;
+        samplerInfo.maxAnisotropy = 1.0f;
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+
+        if (vkCreateSampler(m_Device->Device(), &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create texture sampler!");
+        }
+    }
+
+    void VulkanRenderer::FreeSampler() const
+    {
+        vkDestroySampler(m_Device->Device(), m_TextureSampler, nullptr);
     }
 
     void VulkanRenderer::StartImGui()
@@ -149,6 +199,15 @@ namespace Tupla
 
         //execute a gpu command to upload imgui font textures
         ImGui_ImplVulkan_CreateFontsTexture();
+        
+        m_DescriptorSet.resize(m_SwapChain->ImageCount());
+        m_ViewportTexture.reserve(m_SwapChain->ImageCount());
+        
+        for (int i = 0; i < m_SwapChain->ImageCount(); ++i)
+        {
+            m_ViewportTexture.emplace_back(*m_Device, *m_SwapChain);
+            m_DescriptorSet[i] = ImGui_ImplVulkan_AddTexture(m_TextureSampler, m_ViewportTexture[i].GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
     }
 
     void VulkanRenderer::ShutdownImGui() const
@@ -159,15 +218,24 @@ namespace Tupla
         ImGui_ImplVulkan_Shutdown();
     }
 
-    void VulkanRenderer::BeginSwapChainRenderPass(const VkCommandBuffer commandBuffer) const
+    void VulkanRenderer::BeginRenderPass(const VkCommandBuffer commandBuffer, VkRenderPass pass, VkFramebuffer fbuffer) const
     {
         assert(m_IsFrameStarted && "Can't call BeginSwapChainRenderPass if frame is not in progress");
-        assert(commandBuffer == GetCurrentCommandBuffer() && "Can't begin render pass on command buffer from a different frame");
 
+        if(pass == VK_NULL_HANDLE)
+        {
+            pass = m_SwapChain->GetRenderPass();
+        }
+
+        if(fbuffer == VK_NULL_HANDLE)
+        {
+            fbuffer = m_SwapChain->GetFrameBuffer(m_CurrentImage);
+        }
+        
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = m_SwapChain->GetRenderPass();
-        renderPassInfo.framebuffer = m_SwapChain->GetFrameBuffer(m_CurrentImage);
+        renderPassInfo.renderPass = pass;
+        renderPassInfo.framebuffer = fbuffer;
 
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = m_SwapChain->GetSwapChainExtent();
@@ -192,10 +260,9 @@ namespace Tupla
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     }
 
-    void VulkanRenderer::EndSwapChainRenderPass(const VkCommandBuffer commandBuffer) const
+    void VulkanRenderer::EndRenderPass(const VkCommandBuffer commandBuffer) const
     {
         assert(m_IsFrameStarted && "Can't call EndSwapChainRenderPass if frame is not in progress");
-        assert(commandBuffer == GetCurrentCommandBuffer() && "Can't end render pass on command buffer from a different frame");
     
         vkCmdEndRenderPass(commandBuffer);
     }
@@ -222,6 +289,7 @@ namespace Tupla
     void VulkanRenderer::CreateCommandBuffers()
     {
         m_CommandBuffers.resize(VulkanSwapChain::MaxFramesInFlight);
+        m_ViewportCommandBuffer.resize(VulkanSwapChain::MaxFramesInFlight);
 
         VkCommandBufferAllocateInfo allocInfo {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -233,11 +301,18 @@ namespace Tupla
         {
             throw std::runtime_error("Failed to allocate command buffers!");
         }
+        
+        if(vkAllocateCommandBuffers(m_Device->Device(), &allocInfo, m_ViewportCommandBuffer.data()) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to allocate command buffers!");
+        }
     }
 
     void VulkanRenderer::FreeCommandBuffers()
     {
         vkFreeCommandBuffers(m_Device->Device(), m_Device->GetCommandPool(), static_cast<uint32_t>(m_CommandBuffers.size()), m_CommandBuffers.data());
+        vkFreeCommandBuffers(m_Device->Device(), m_Device->GetCommandPool(), static_cast<uint32_t>(m_ViewportCommandBuffer.size()), m_ViewportCommandBuffer.data());
         m_CommandBuffers.clear();
+        m_ViewportCommandBuffer.clear();
     }
 }

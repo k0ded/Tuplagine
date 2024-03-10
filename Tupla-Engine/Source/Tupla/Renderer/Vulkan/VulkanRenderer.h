@@ -4,6 +4,7 @@
 #include "VulkanDevice.h"
 #include "VulkanSwapChain.h"
 #include "VulkanWindow.h"
+#include "Assets/VulkanRenderTexture.h"
 #include "Tupla/Renderer/Renderer.h"
 
 namespace Tupla
@@ -23,11 +24,13 @@ namespace Tupla
 
         CLASS_RENDER_IMPL(VULKAN)
     private:
+        void CreateSampler();
+        void FreeSampler() const;
         void StartImGui();
         void ShutdownImGui() const;
 
-        void BeginSwapChainRenderPass(const VkCommandBuffer commandBuffer) const;
-        void EndSwapChainRenderPass(const VkCommandBuffer commandBuffer) const;
+        void BeginRenderPass(const VkCommandBuffer commandBuffer, VkRenderPass pass = VK_NULL_HANDLE, VkFramebuffer fbuffer = VK_NULL_HANDLE) const;
+        void EndRenderPass(const VkCommandBuffer commandBuffer) const;
 
         void RecreateSwapChain();
         void CreateCommandBuffers();
@@ -55,7 +58,16 @@ namespace Tupla
         Scope<VulkanDevice> m_Device;
         Scope<VulkanSwapChain> m_SwapChain;
         std::vector<VkCommandBuffer> m_CommandBuffers;
+
+        // Viewport
+        std::vector<VulkanRenderTexture> m_ViewportTexture;
+        std::vector<VkCommandBuffer> m_ViewportCommandBuffer;
+        VkRenderPass m_ViewportPass;
+        
         VkDescriptorPool m_ImGuiPool;
+        std::vector<VkDescriptorSet> m_DescriptorSet;
+
+        VkSampler m_TextureSampler;
 
         uint32_t m_CurrentImage;
         int m_CurrentFrameIndex;

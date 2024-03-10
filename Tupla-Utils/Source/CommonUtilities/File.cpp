@@ -1,9 +1,12 @@
 
 #include "File.h"
 
+#include <fstream>
+#include <stdexcept>
+
 namespace CommonUtilities
 {
-	bool ReadWholeFile(const char *aPath, std::string &aBuffer)
+	bool ReadFile(const char *aPath, std::string &aBuffer, int aOffset, int aLength)
 	{
 		FILE *file;
 		errno_t error = fopen_s(&file, aPath, "r");
@@ -11,8 +14,15 @@ namespace CommonUtilities
 		if (opened)
 		{
 			fseek(file, 0, SEEK_END);
-			int length = ftell(file);
-			fseek(file, 0, SEEK_SET);
+			int length = ftell(file) - aOffset;
+
+			if(aLength >= 0)
+			{
+				assert(length >= aLength && "Cannot read more than the file length!");
+				length = aLength;
+			}
+			
+			fseek(file, aOffset, SEEK_SET);
 			aBuffer.resize(length);
 			fread(aBuffer.data(), sizeof(char), length, file);
 			fclose(file);
@@ -28,5 +38,31 @@ namespace CommonUtilities
 		}
 
 		return opened;
+	}
+	
+	bool ReadFileBinary(const char *aPath, std::vector<char>& aBuffer, int aOffset, int aLength)
+	{
+		std::ifstream file { aPath, std::ios::ate | std::ios::binary };
+
+		if(!file.is_open())
+		{
+			printf("Error opening file: %s!\n", aPath);
+			return false;
+		}
+
+		const size_t fileSize = file.tellg();
+
+		if(fileSize < aOffset + aLength)
+		{
+			printf("Offset and length is large than filesize!\n");
+			return false;
+		}
+		
+		aBuffer.resize(aLength);
+		file.seekg(aOffset);
+		file.read(aBuffer.data(), aLength);
+		file.close();
+
+		return true;
 	}
 }

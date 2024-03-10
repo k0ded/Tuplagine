@@ -41,8 +41,9 @@ namespace Tupla
         void PushOverlay(Layer* layer);
         
         const ApplicationSpecification& GetSpecification() { return m_Specification; }
-
         void Shutdown(bool restarting = false);
+
+        Renderer* GetRenderer() const { return m_Renderer.get(); }
 
         static Application& Get() { return *s_Application; }
     private:

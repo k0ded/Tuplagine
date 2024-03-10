@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-typedef long long           s64;
-typedef int                 s32;
-typedef short               s16;
-typedef char                s8;
+typedef long long           i64;
+typedef int                 i32;
+typedef short               i16;
+typedef char                i8;
 
 typedef unsigned long long  u64;
 typedef unsigned int        u32;

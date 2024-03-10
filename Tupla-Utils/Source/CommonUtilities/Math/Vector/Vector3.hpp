@@ -69,13 +69,6 @@ namespace CommonUtilities
     }
 
     template <class T>
-    template <class OtherVectorClass>
-    Vector3<T>::operator OtherVectorClass() const
-    {
-        return { x, y, z };
-    }
-
-    template <class T>
     Vector3<T> Vector3<T>::operator-() const
     {
         return *this * T(-1);
@@ -138,6 +131,12 @@ namespace CommonUtilities
         vec.y = (z * aVector.x) - (x * aVector.z);
         vec.z = (x * aVector.y) - (y * aVector.x);
         return vec;
+    }
+
+    template<class T>
+    bool operator==(const Vector3<T>& aVector0, const Vector3<T>& aVector1)
+    {
+        return aVector0.x == aVector1.x && aVector0.y == aVector1.y && aVector0.z == aVector1.z;
     }
 
     //Returns the vector sum of aVector0 and aVector1
@@ -222,6 +221,11 @@ namespace CommonUtilities
     {
         aVector = aVector / aScalar;
     }
+
+    typedef Vector3<unsigned>   Vector3ui;
+    typedef Vector3<double>     Vector3d;
+    typedef Vector3<float>      Vector3f;
+    typedef Vector3<int>        Vector3i;
 }
 
 namespace CU = CommonUtilities;
