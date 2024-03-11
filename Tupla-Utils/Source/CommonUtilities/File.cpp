@@ -54,8 +54,15 @@ namespace CommonUtilities
 
 		if(fileSize < aOffset + aLength)
 		{
-			printf("Offset and length is large than filesize!\n");
-			return false;
+			if (aLength <= -1) 
+			{
+				aLength = fileSize - aOffset;
+			}
+			else 
+			{
+				printf("Offset and length is large than filesize!\n");
+				return false;
+			}
 		}
 		
 		aBuffer.resize(aLength);

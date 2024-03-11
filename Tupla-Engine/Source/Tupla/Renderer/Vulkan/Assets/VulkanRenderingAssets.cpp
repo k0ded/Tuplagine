@@ -4,6 +4,7 @@
 #include "VulkanBuffer.h"
 #include "VulkanMesh.h"
 #include "VulkanTexture.h"
+#include "VulkanShader.h"
 
 namespace Tupla
 {
@@ -21,6 +22,11 @@ namespace Tupla
     Scope<Texture> VulkanRenderingAssets::CreateTexture()
     {
         return CreateScope<VulkanTexture>(m_Device);
+    }
+
+    Scope<Shader> VulkanRenderingAssets::CreateShader(const std::string& virtualPath)
+    {
+        return CreateScope<VulkanShader>(m_Device, virtualPath);
     }
 
     Scope<Mesh> VulkanRenderingAssets::CreateMesh()

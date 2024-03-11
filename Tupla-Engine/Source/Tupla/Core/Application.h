@@ -6,6 +6,7 @@
 #include "Window.h"
 #include "Tupla/Core/Base.h"
 #include "Tupla/Renderer/Renderer.h"
+#include <Tupla/AssetManager/AssetManager.h>
 
 int main(int argc, char** argv);
 
@@ -44,6 +45,7 @@ namespace Tupla
         void Shutdown(bool restarting = false);
 
         Renderer* GetRenderer() const { return m_Renderer.get(); }
+        AssetManager& GetAssetManager() const { return *m_AssetManager; }
 
         static Application& Get() { return *s_Application; }
     private:
@@ -51,6 +53,7 @@ namespace Tupla
 
         Scope<Renderer> m_Renderer;
         Scope<Window> m_Window;
+        Scope<AssetManager> m_AssetManager;
         
         ApplicationSpecification m_Specification;
         LayerStack m_LayerStack;

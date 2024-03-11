@@ -6,7 +6,9 @@ namespace Tupla
     {
     public:
         virtual ~Shader() = default;
-        virtual Scope<std::string> GetCode();
+
+        virtual void CompileOnce(const std::vector<char>& code) = 0;
+        virtual void RecompileCode() = 0;
         u32 GetCodeSize() const { return m_LastCodeSize; }
 
     protected:

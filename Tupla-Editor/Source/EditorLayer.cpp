@@ -1,5 +1,7 @@
 ﻿#include "EditorLayer.h"
 #include <imgui.h>
+#include <iostream>
+#include <Tupla.h>
 
 static float someFloat = 0.f;
 

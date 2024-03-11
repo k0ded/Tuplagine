@@ -30,8 +30,8 @@ namespace Tupla
     
     VulkanGraphicsPipeline::VulkanGraphicsPipeline(
         VulkanDevice& device,
-        const Ref<SpirvShader>& vertexShader,
-        const Ref<SpirvShader>& fragmentShader,
+        const Ref<VulkanShader>& vertexShader,
+        const Ref<VulkanShader>& fragmentShader,
         const PipelineConfigInfo& configuration): m_Device(device)
     {
         CreateGraphicsPipeline(
@@ -133,8 +133,8 @@ namespace Tupla
     }
 
     void VulkanGraphicsPipeline::CreateGraphicsPipeline(
-        const Ref<SpirvShader>& vertexShader,
-        const Ref<SpirvShader>& fragmentShader,
+        const Ref<VulkanShader>& vertexShader,
+        const Ref<VulkanShader>& fragmentShader,
         const PipelineConfigInfo& configuration)
     {
         assert(
@@ -143,13 +143,10 @@ namespace Tupla
         assert(
             configuration.RenderPass != VK_NULL_HANDLE && "Cannot create graphics pipeline: No render pass provided");
 
-        CreateShaderModule(vertexShader->GetCode(), vertexShader->GetCodeSize(), &m_VertShaderModule);
-        CreateShaderModule(fragmentShader->GetCode(), fragmentShader->GetCodeSize(), &m_FragShaderModule);
-
         VkPipelineShaderStageCreateInfo shaderStages[2];
         shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-        shaderStages[0].module = m_VertShaderModule;
+        shaderStages[0].module = vertexShader->GetModule();
         shaderStages[0].pName = "main";
         shaderStages[0].flags = 0;
         shaderStages[0].pNext = nullptr;
@@ -157,7 +154,7 @@ namespace Tupla
 
         shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        shaderStages[1].module = m_FragShaderModule;
+        shaderStages[1].module = fragmentShader->GetModule();
         shaderStages[1].pName = "main";
         shaderStages[1].flags = 0;
         shaderStages[1].pNext = nullptr;
@@ -198,20 +195,6 @@ namespace Tupla
             != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create graphics pipeline!");
-        }
-    }
-
-    void VulkanGraphicsPipeline::CreateShaderModule(const Scope<std::string>& code, u32 codeSize,
-                                                    VkShaderModule* shaderModule) const
-    {
-        VkShaderModuleCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = codeSize;
-        createInfo.pCode = reinterpret_cast<u32*>(code->data());
-
-        if (vkCreateShaderModule(m_Device.Device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create shader module!");
         }
     }
 }

@@ -30,6 +30,8 @@ namespace Tupla
             return GetOrLoadAsset<T>(HASH_STR(aFile.c_str()));
         }
 
+        void ReadBinaryFromFile(const std::string& virtualFile, std::vector<char>& buffer);
+
     private:
         template <typename T> requires(std::is_base_of_v<Asset, T>)
         std::shared_ptr<T> GetOrLoadAsset(const int aId)

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <CommonUtilities/g_types.h>
+#include "Tupla/Utils/Hashing.h"
 #include <combaseapi.h>
 #include <format>
 

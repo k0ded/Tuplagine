@@ -2,8 +2,8 @@
 #include <vulkan/vulkan_core.h>
 
 #include "Tupla/Renderer/Shader.h"
-#include "Tupla/Renderer/SPIR-V/SpirvShader.h"
 #include "Tupla/Renderer/Vulkan/VulkanDevice.h"
+#include <Tupla/Renderer/Vulkan/Assets/VulkanShader.h>
 
 namespace Tupla
 {
@@ -35,8 +35,8 @@ namespace Tupla
     public:
         VulkanGraphicsPipeline(
             VulkanDevice& device,
-            const Ref<SpirvShader>& vertexShader,
-            const Ref<SpirvShader>& fragmentShader,
+            const Ref<VulkanShader>& vertexShader,
+            const Ref<VulkanShader>& fragmentShader,
             const PipelineConfigInfo& configuration
             );
         ~VulkanGraphicsPipeline();
@@ -50,12 +50,10 @@ namespace Tupla
 
     private:
         void CreateGraphicsPipeline(
-            const Ref<SpirvShader>& vertexShader,
-            const Ref<SpirvShader>& fragmentShader,
+            const Ref<VulkanShader>& vertexShader,
+            const Ref<VulkanShader>& fragmentShader,
             const PipelineConfigInfo& configuration
             );
-
-        void CreateShaderModule(const Scope<std::string>& code, u32 codeSize, VkShaderModule* shaderModule) const;
 
         VulkanDevice& m_Device;
         VkPipeline m_GraphicsPipeline;

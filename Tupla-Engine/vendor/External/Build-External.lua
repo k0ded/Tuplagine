@@ -3,9 +3,9 @@ project "External"
 	language "C++"
 	cppdialect "C++20"
 
-	targetdir ("../../Lib/")
+	targetdir ("../../../Binaries/" .. OutputDir .. "/%{prj.name}")
 	targetname("%{prj.name}_%{cfg.buildcfg}")
-	objdir ("../../Temp/%{prj.name}/%{cfg.buildcfg}")
+	objdir ("../../../Binaries/Intermediates/" .. OutputDir .. "/%{prj.name}")
 
 	--pchheader "stdafx.h"
 	--pchsource "Source/%{prj.name}/stdafx.cpp"

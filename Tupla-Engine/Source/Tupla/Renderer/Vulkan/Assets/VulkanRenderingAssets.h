@@ -3,6 +3,7 @@
 #include "Tupla/Renderer/Mesh.h"
 #include "Tupla/Renderer/RenderingAssets.h"
 #include "Tupla/Renderer/Vulkan/VulkanDevice.h"
+#include <Tupla/Renderer/Shader.h>
 
 namespace Tupla
 {
@@ -14,6 +15,7 @@ namespace Tupla
         Scope<Buffer> CreateBuffer(u64 instanceSize, u32 instanceCount, i32 bUsage, i32 mUsage) override;
         Scope<Texture> CreateTexture() override;
         Scope<Mesh> CreateMesh() override;
+        Scope<Shader> CreateShader(const std::string& virtualPath) override;
 
     private:
         VulkanDevice& m_Device;

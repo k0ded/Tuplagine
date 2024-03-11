@@ -60,5 +60,19 @@ constexpr u32 crc32<size_t(-1)>(const char * str)
     return 0xFFFFFFFF;
 }
 
+inline u32 crc32r(const std::string& str) 
+{
+	size_t size = str.size();
+	u32 hashed = 0xFFFFFFFF;
+
+	for (size_t i = 0; i < size; i++)
+	{
+		hashed = crc_table[(hashed ^ str[i]) & 0xff] ^ (hashed >> 8);
+	}
+
+	return hashed ^ 0xFFFFFFFF;
+}
+
 // This doesn't take into account the nul char
-#define HASH_STR(x) (crc32<sizeof(x) - 2>(x) ^ 0xFFFFFFFF)
+#define HASH_STR(x) (::crc32<sizeof(x) - 2>(x) ^ 0xFFFFFFFF)
+#define HASH_RUNTIME_STR(x) (::crc32r((x)))

@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include "Tupla/Utils/Hashing.h"
+#include "Tupla/Core/Base.h"
+#include "Shader.h"
 
 namespace Tupla
 {
@@ -13,11 +15,14 @@ namespace Tupla
         template<const char* Name, typename T>
         void Set(const T& value) { return Set<T>(HASH_STR(Name), value); }
 
-        u64 GetPropertyBlockSize();
-        virtual void CopyPropertyBlock(void*) = 0;
+        virtual void SetFragmentShader(Ref<Shader> shader) = 0;
+        virtual void SetVertexShader(Ref<Shader> shader) = 0;
 
+        u64 GetPropertyBlockSize() const { return m_PropertyBlockSize; }
     protected:
         virtual void SetInternal(u64 offset, void* src, u64 srcSize) = 0;
         virtual u64 GetOffsetFromHash(u32 hash) = 0;
+
+        u64 m_PropertyBlockSize{};
     };
 }
