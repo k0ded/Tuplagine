@@ -4,17 +4,30 @@
 
 namespace Tupla
 {
-    class VulkanRenderTexture final : public VulkanTexture
+    class VulkanRenderTexture
     {
     public:
         explicit VulkanRenderTexture(VulkanDevice& device, const VulkanSwapChain& swapChain);
-        ~VulkanRenderTexture() override;
+        ~VulkanRenderTexture();
 
-        VkImageView GetImageView() const { return m_ImageView; }
-        VkFramebuffer GetFramebuffer() const { return m_Framebuffer; }
+        void RecreateTexture(const VulkanSwapChain& swapChain);
+        
+        VkImageView GetImageView(u32 index) const { return m_ColorImageView[index]; }
+        VkFramebuffer GetFramebuffer(u32 index) const { return m_Framebuffer[index]; }
+        VkRenderPass GetRenderPass() const { return m_RenderPass; }
 
     private:
-        VkImageView m_ImageView;
-        VkFramebuffer m_Framebuffer;
+
+        void CreateImages(const VulkanSwapChain& swapChain);
+        void CreateFrameBuffer(const VulkanSwapChain& swapChain);
+        void CreateRenderPass(const VulkanSwapChain& swapChain);
+        
+        VulkanDevice& m_Device;
+        
+        std::vector<VulkanTexture> m_Color;
+        std::vector<VkImageView> m_ColorImageView;
+        
+        std::vector<VkFramebuffer> m_Framebuffer;
+        VkRenderPass m_RenderPass;
     };
 }

@@ -60,9 +60,8 @@ namespace Tupla
         std::vector<VkCommandBuffer> m_CommandBuffers;
 
         // Viewport
-        std::vector<VulkanRenderTexture> m_ViewportTexture;
+        Scope<VulkanRenderTexture> m_ViewportTexture;
         std::vector<VkCommandBuffer> m_ViewportCommandBuffer;
-        VkRenderPass m_ViewportPass;
         
         VkDescriptorPool m_ImGuiPool;
         std::vector<VkDescriptorSet> m_DescriptorSet;

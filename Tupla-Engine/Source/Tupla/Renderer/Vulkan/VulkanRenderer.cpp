@@ -43,6 +43,7 @@ namespace Tupla
         if(result == VK_ERROR_OUT_OF_DATE_KHR)
         {
             RecreateSwapChain();
+            m_ViewportTexture->RecreateTexture(*m_SwapChain);
             return;
         }
     
@@ -62,7 +63,7 @@ namespace Tupla
             throw std::runtime_error("failed to begin recording command buffer!");
         }
 
-        BeginRenderPass(commandBuffer, m_ViewportPass, m_ViewportTexture[m_CurrentFrameIndex].GetFramebuffer());
+        BeginRenderPass(commandBuffer, m_ViewportTexture->GetRenderPass(), m_ViewportTexture->GetFramebuffer(m_CurrentFrameIndex));
     }
 
     void VulkanRenderer::EndFrame()
@@ -76,8 +77,8 @@ namespace Tupla
         {
             throw std::runtime_error("Failed to record command buffer!");
         }
-    
-        std::vector<VkCommandBuffer> commandBuffers = { m_ViewportCommandBuffer[m_CurrentFrameIndex], commandBuffer };
+
+        const std::vector<VkCommandBuffer> commandBuffers = { m_ViewportCommandBuffer[m_CurrentFrameIndex], commandBuffer };
         const auto result = m_SwapChain->SubmitCommandBuffers(commandBuffers.data(), &m_CurrentImage, 2);
         if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_Window->WasWindowResized())
         {
@@ -101,7 +102,6 @@ namespace Tupla
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         vkBeginCommandBuffer(GetCurrentCommandBuffer(), &beginInfo);
         BeginRenderPass(GetCurrentCommandBuffer());
-
         
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -201,12 +201,12 @@ namespace Tupla
         ImGui_ImplVulkan_CreateFontsTexture();
         
         m_DescriptorSet.resize(m_SwapChain->ImageCount());
-        m_ViewportTexture.reserve(m_SwapChain->ImageCount());
+
+        m_ViewportTexture = CreateScope<VulkanRenderTexture>(*m_Device, *m_SwapChain);
         
         for (int i = 0; i < m_SwapChain->ImageCount(); ++i)
         {
-            m_ViewportTexture.emplace_back(*m_Device, *m_SwapChain);
-            m_DescriptorSet[i] = ImGui_ImplVulkan_AddTexture(m_TextureSampler, m_ViewportTexture[i].GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            m_DescriptorSet[i] = ImGui_ImplVulkan_AddTexture(m_TextureSampler, m_ViewportTexture->GetImageView(i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
     }
 

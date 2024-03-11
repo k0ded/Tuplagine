@@ -11,8 +11,12 @@ namespace Tupla
     public:
         VulkanTexture(VulkanDevice& device): m_Device(device) {}
         ~VulkanTexture() override;
+        
         void SetImageData(void* imageData, u32 texWidth, u32 texHeight, u32 texBytesPerPixel) override;
         void RecreateImage() override;
+
+        VkImage& GetImage() { return m_Image; }
+        VkDeviceMemory& GetMemory() { return m_ImageMemory; }
 
     protected:
         VulkanDevice& m_Device;
