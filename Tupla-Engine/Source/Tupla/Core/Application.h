@@ -52,7 +52,6 @@ namespace Tupla
         void Run();
 
         Scope<Renderer> m_Renderer;
-        Scope<Window> m_Window;
         Scope<AssetManager> m_AssetManager;
         
         ApplicationSpecification m_Specification;

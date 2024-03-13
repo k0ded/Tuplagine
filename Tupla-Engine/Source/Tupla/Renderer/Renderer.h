@@ -19,13 +19,16 @@ namespace Tupla
     public:
         virtual ~Renderer() = default;
 
-        virtual Scope<Window> StartWindow(const WindowProps& props) = 0;
+        virtual void StartWindow(const WindowProps& props) = 0;
         virtual RenderingAssets* GetRenderingAssets() { return m_RenderingAssets.get(); }
+
+        virtual bool Init() = 0;
+        virtual void Shutdown() = 0;
 
         virtual void BeginFrame() = 0;
         virtual void EndFrame() = 0;
-        virtual void BeginGUIFrame() = 0;
-        virtual void EndGUIFrame() = 0;
+
+        virtual Window* GetWindow() = 0;
         
         virtual RenderImpl GetActiveImplementation() = 0;
         virtual const char* GetName() = 0;

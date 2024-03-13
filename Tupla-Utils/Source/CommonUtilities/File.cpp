@@ -40,7 +40,7 @@ namespace CommonUtilities
 		return opened;
 	}
 	
-	bool ReadFileBinary(const char *aPath, std::vector<char>& aBuffer, int aOffset, int aLength)
+	bool ReadFileBinary(const char *aPath, std::vector<char>& aBuffer, int aOffset, unsigned int aLength)
 	{
 		std::ifstream file { aPath, std::ios::ate | std::ios::binary };
 
@@ -54,7 +54,7 @@ namespace CommonUtilities
 
 		if(fileSize < aOffset + aLength)
 		{
-			if (aLength <= -1) 
+			if (aLength == (~((unsigned int)0)))
 			{
 				aLength = fileSize - aOffset;
 			}

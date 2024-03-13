@@ -10,5 +10,5 @@ namespace CommonUtilities
 	// Returns true on success.
 	bool ReadFile(const char *aPath, std::string &aBuffer, int aOffset = 0, int aLength = -1);
 
-	bool ReadFileBinary(const char *aPath, std::vector<char>& aBuffer, int aOffset = 0, int aLength = -1);
+	bool ReadFileBinary(const char *aPath, std::vector<char>& aBuffer, int aOffset = 0, unsigned int aLength = ~((unsigned int)0));
 }

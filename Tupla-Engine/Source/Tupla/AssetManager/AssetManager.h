@@ -30,6 +30,8 @@ namespace Tupla
             return GetOrLoadAsset<T>(HASH_STR(aFile.c_str()));
         }
 
+        void InsertFilePath(const std::string& phyiscalFile, const std::string& virtualFile);
+
         void ReadBinaryFromFile(const std::string& virtualFile, std::vector<char>& buffer);
 
     private:
@@ -78,9 +80,9 @@ namespace Tupla
             throw std::exception("Failed to load asset!");
         }
 
-        std::unordered_map<i32, std::weak_ptr<Asset>> m_TemporaryAssetCache;
-        std::unordered_map<i32, std::shared_ptr<Asset>> m_PersistentAssetCache;
-        std::unordered_map<i32, AssetEntry> m_VirtualToPhysicalMap;
+        std::unordered_map<i32, std::weak_ptr<Asset>> m_TemporaryAssetCache{};
+        std::unordered_map<i32, std::shared_ptr<Asset>> m_PersistentAssetCache{};
+        std::unordered_map<i32, AssetEntry> m_VirtualToPhysicalMap{};
         
 #ifdef DIST
         bool m_ReadPackedAssets = true;

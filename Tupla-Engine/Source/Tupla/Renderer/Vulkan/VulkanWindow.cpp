@@ -10,7 +10,7 @@ namespace Tupla
     {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         
         m_Handle = glfwCreateWindow(m_Props.Width, m_Props.Height, m_Props.Title.c_str(), nullptr, nullptr);
         glfwSetWindowUserPointer(static_cast<GLFWwindow*>(m_Handle), this);
@@ -22,7 +22,6 @@ namespace Tupla
             static_cast<VulkanWindow*>(glfwGetWindowUserPointer(window))->m_WindowResizedFlag = true;
             static_cast<VulkanWindow*>(glfwGetWindowUserPointer(window))->m_WindowMinimizedFlag = w > 0 && h > 0;
         });
-        // TODO: SETUP EVENTS!!!
     }
 
     VulkanWindow::~VulkanWindow()

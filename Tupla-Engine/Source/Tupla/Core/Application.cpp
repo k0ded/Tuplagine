@@ -13,12 +13,14 @@ namespace Tupla
     {
         m_Restarting = false;
         s_Application = this;
+        m_AssetManager = CreateScope<AssetManager>();
         m_Renderer = CreateScope<VulkanRenderer>();
+        m_Renderer->StartWindow({ m_Specification.ApplicationName });
+        m_Renderer->Init();
 
         if(!m_Specification.WorkingDirectory.empty())
             std::filesystem::current_path(m_Specification.WorkingDirectory);
 
-        m_Window = m_Renderer->StartWindow({ m_Specification.ApplicationName });
     }
 
     void Application::Push(Layer* layer)
@@ -35,6 +37,7 @@ namespace Tupla
     {
         m_Running = false;
         m_Restarting = restarting;
+        m_Renderer->Shutdown();
     }
 
     void Application::Run()
@@ -45,8 +48,6 @@ namespace Tupla
             Time::Update();
 
             m_Renderer->BeginFrame();
-            if(!m_Window->GetMinimized())
-            {
                 {
                     for (const auto layer : m_LayerStack)
                     {
@@ -54,19 +55,17 @@ namespace Tupla
                     }
                 }
 
-                m_Renderer->BeginGUIFrame();
                 {
                     for (const auto layer : m_LayerStack)
                     {
                         layer->OnGUI();
                     }
                 }
-                m_Renderer->EndGUIFrame();
-            }
+            
             
             m_Renderer->EndFrame();
 
-            m_Running = !m_Window->ShouldClose();
+            m_Running = !m_Renderer->GetWindow()->ShouldClose();
         }
     }
 }
