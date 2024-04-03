@@ -75,6 +75,16 @@ namespace Tupla
             }
         }
 
+        // Resize buffers if window size isn't correct
+        {
+	        const auto windowExtents = m_Window->GetExtents();
+            if (windowExtents != m_RenderingSize)
+            {
+                m_RenderingSize = windowExtents;
+                ResizeSwapChain();
+            }
+        }
+
         FLOAT clearColor[4] = { 0.f, 0.f, 0.f, 1.f };
         m_Context->ClearRenderTargetView(m_FrameBufferRTV, clearColor);
         m_Context->ClearDepthStencilView(m_DepthBufferDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
@@ -160,6 +170,28 @@ namespace Tupla
             nullptr,
             &m_Context
         );
+
+        m_SwapChain->GetDesc(&swapchaindesc);
+
+        m_RenderingSize = { swapchaindesc.BufferDesc.Width, swapchaindesc.BufferDesc.Height };
+	}
+
+	void DX11Renderer::ResizeSwapChain()
+	{
+        m_FrameBuffer->Release();
+        m_FrameBufferRTV->Release();
+        m_DepthBuffer->Release();
+        m_DepthBufferDSV->Release();
+
+        DXGI_SWAP_CHAIN_DESC swapchainDesc;
+        auto result = m_SwapChain->GetDesc(&swapchainDesc);
+        ASSERT(SUCCEEDED(result), "Failed getting swapchain desc");
+
+        result = m_SwapChain->ResizeBuffers(swapchainDesc.BufferCount, m_RenderingSize.x, m_RenderingSize.y, swapchainDesc.BufferDesc.Format, swapchainDesc.Flags);
+        ASSERT(SUCCEEDED(result), "Failed to resize swapchain buffers");
+
+		CreateFrameBuffer();
+        CreateDepthBuffer();
 	}
 
 	void DX11Renderer::CreateFrameBuffer()

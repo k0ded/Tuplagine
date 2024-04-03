@@ -62,3 +62,16 @@ void Tupla::DX11RenderTexture::Clear(const CU::Vector4f& clearColor) const
 	m_Renderer->GetDeviceContext()->ClearRenderTargetView(m_TextureRTV, (float*)&clearColor);
 	m_Renderer->GetDeviceContext()->ClearDepthStencilView(m_DepthDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
+
+Tupla::Scope<Tupla::DX11Texture> Tupla::DX11RenderTexture::LinkedTexture()
+{
+	Tupla::Scope<DX11Texture> texture = Tupla::CreateScope<DX11Texture>(m_Renderer);
+	texture->m_Width = m_Width;
+	texture->m_Height = m_Height;
+	texture->m_Texture = m_Texture;
+	texture->m_Texture->AddRef();
+	texture->m_TextureSRV = m_TextureSRV;
+	texture->m_TextureSRV->AddRef();
+
+	return texture;
+}

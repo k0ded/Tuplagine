@@ -67,7 +67,7 @@ namespace Tupla
 	void WindowsWindow::PollEvents() const
 	{
 		MSG msg;
-		while (PeekMessage(&msg, (HWND)m_Handle, 0, 0, PM_REMOVE))
+		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
 			for (const auto& function : m_AttachedEvents)
 			{

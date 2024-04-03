@@ -31,6 +31,7 @@ namespace Tupla
 		CLASS_RENDER_IMPL(DX11)
 	private:
 		void CreateSwapChain();
+		void ResizeSwapChain();
 		void CreateFrameBuffer();
 		void CreateDepthBuffer();
 		void CreateStates();
@@ -54,5 +55,6 @@ namespace Tupla
 		Scope<DX11RenderTexture> m_ViewportTexture;
 
 		CU::Vector2ui m_ViewportSize;
+		CU::Vector2ui m_RenderingSize;
 	};
 }
