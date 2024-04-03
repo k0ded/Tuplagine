@@ -16,7 +16,6 @@ project "Tupla-Engine"
    {
         "Source",
         "../Tupla-Utils/Source",
-        "$(VULKAN_SDK)/include",
 		"vendor/External/"
    }
 
@@ -27,7 +26,6 @@ project "Tupla-Engine"
    links { 
     "External",
     "Tupla-Utils",
-    "$(VULKAN_SDK)/lib/vulkan-1",
     "glfw3.lib"
     }
 
