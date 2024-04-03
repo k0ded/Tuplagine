@@ -36,10 +36,11 @@ project "Tupla-Engine"
 
    targetdir ("../Binaries/" .. OutputDir .. "/%{prj.name}")
    objdir ("../Binaries/Intermediates/" .. OutputDir .. "/%{prj.name}")
+   defines { "GLSL_VALIDATOR=\"$(VULKAN_SDK)/Bin/glslangValidator\"" }
 
    filter "system:windows"
        systemversion "latest"
-       defines { }
+       defines { "GLSL_VALIDATOR=\"$(VULKAN_SDK)/Bin/glslangValidator.exe\"" }
 
    filter "configurations:Debug"
        defines { "DEBUG" }

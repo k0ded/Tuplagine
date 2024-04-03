@@ -12,10 +12,23 @@ void Tupla::EditorLayer::OnGUI()
 	themes.SetSize(Tuplitor::Size::Rounded);
 	themes.SetFont(Tuplitor::Font::Tratex);
 
+	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 	ImGui::ShowDemoWindow();
 	ImGui::Begin("Something");
 	ImGui::SliderFloat("slidername", &someFloat, 0, 1);
 	ImGui::End();
+
+#pragma region Viewport
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+	ImGui::Begin("Scene");
+	auto wSize = ImGui::GetContentRegionAvail();
+	// Queues viewport image resize
+	void* imguiImage = Application::Get().GetRenderer()->GetViewportImage({ static_cast<unsigned>(wSize.x), static_cast<unsigned>(wSize.y) });
+	ImGui::Image(imguiImage, wSize);
+	ImGui::End();
+	ImGui::PopStyleVar();
+#pragma endregion
 
 
 #pragma region Inspector

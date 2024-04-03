@@ -26,7 +26,7 @@ namespace Tupla
     
     struct ApplicationSpecification
     {
-        std::string ApplicationName = "May the Tupla be with you... Always.";
+        std::wstring ApplicationName = L"May the Tupla be with you... Always.";
         std::string WorkingDirectory;
         ApplicationCommandLineArgs CommandLineArgs;
     };

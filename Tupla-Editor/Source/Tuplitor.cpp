@@ -17,7 +17,7 @@ namespace Tupla
     Application* CreateApplication(const ApplicationCommandLineArgs args)
     {
         ApplicationSpecification spec;
-        spec.ApplicationName = "Tuplitor - Japp";
+        spec.ApplicationName = L"Tuplitor - Japp";
         spec.CommandLineArgs = args;
 
         return new Tuplitor(spec);

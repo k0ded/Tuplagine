@@ -94,13 +94,6 @@ namespace CommonUtilities
     Vector4<T>::~Vector4() = default;
 
     template <class T>
-    template <class OtherVectorClass>
-    Vector4<T>::operator OtherVectorClass() const
-    {
-        return { x, y, z, w };
-    }
-
-    template <class T>
     Vector4<T> Vector4<T>::operator-() const
     {
         return *this * T(-1);
@@ -244,6 +237,12 @@ namespace CommonUtilities
     void operator/=(Vector4<T>& aVector, const T& aScalar)
     {
         aVector = aVector / aScalar;
+    }
+
+    template <class T>
+    bool operator==(const Vector4<T>& aVector, const Vector4<T>& aVector1)
+    {
+        return aVector.x == aVector1.x && aVector.y == aVector1.y && aVector.z == aVector1.z && aVector.w == aVector1.w;
     }
 
     typedef Vector4<unsigned>   Vector4ui;
