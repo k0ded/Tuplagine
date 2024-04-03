@@ -1,7 +1,8 @@
+
 cbuffer constants : register(b0)
 {
-    float4x4 transform;
-    float4x4 projection;
+    row_major float4x4 transform;
+    row_major float4x4 projection;
     float3   lightvector;
 }
 
@@ -29,7 +30,7 @@ pixeldata vert(vertexdata vertex)
 
     pixeldata output;
 
-    output.position = mul(float4(vertex.position, 1.0f), mul(projection, transform));
+    output.position = mul(float4(vertex.position, 1.0f), mul(transform, projection));
     output.texcoord = vertex.texcoord;
     output.color = float4(vertex.color * light, 1.0f);
 

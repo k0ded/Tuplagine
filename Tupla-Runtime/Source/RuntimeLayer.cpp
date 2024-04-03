@@ -33,17 +33,27 @@ Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 	m_Material->SetShaderStage(vert);
 	m_Material->SetShaderStage(ps);
 	m_Material->AttachImage(tex);
+
+	m_Transform = CU::Matrix4x4<float>();
+	m_Transform.SetPosition({ 0.f, 0.f, 4.f });
 }
 
 void Tupla::RuntimeLayer::OnUpdate()
 {
+	m_Transform = CU::Matrix4x4<float>::CreateRotation({ 0.0005f, 0.0009f, 0.0001f }) * m_Transform;
 	Constants consts{};
-	consts.Transform = CU::Matrix4x4<float>();
-	consts.Transform.SetPosition({ 0.f, 0.f, 20.f });
+	consts.Transform = m_Transform;
 
 	const auto viewportSize = Application::Get().GetRenderer()->GetViewportSize();
 	const auto ar = static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y);
-	consts.Projection = CU::Matrix4x4<float>::CreatePerspectiveProjection(ar, 45.f * Nerd::DEG2RAD, 1000.f, 0.1f);
+
+	float n = 1.f;
+	float h = 1.f;
+	float f = 9.f;
+
+	consts.Projection = CU::Matrix4x4<float>(std::array<float, 16>{ 2 * n / ar, 0, 0, 0, 0, 2 * n / h, 0, 0, 0, 0, f / (f - n), 1, 0, 0, n * f / (n - f), 0 });
+
+	//consts.Projection = CU::Matrix4x4<float>::CreatePerspectiveProjection(ar, 90.f * Nerd::DEG2RAD, 1000.f, 0.1f);
 	consts.LightVector = { 1.f, -1.f, 1.f };
 	CU::Matrix4x4<float> transform = CU::Matrix4x4<float>();
 	m_Material->UpdateConstants(consts);
