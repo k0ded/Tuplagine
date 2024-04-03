@@ -10,8 +10,8 @@ namespace Tupla
     {
     public:
         virtual ~RenderingAssets() = default;
+        virtual Scope<Shader> CreateShader(const std::string& virtualPath, ShaderStage stage) = 0;
         virtual Scope<Texture> CreateTexture() = 0;
         virtual Scope<Mesh> CreateMesh() = 0;
-        virtual Scope<Shader> CreateShader(const std::string& virtualPath) = 0;
     };
 }

@@ -10,12 +10,12 @@ void Logger::Init() {
     std::vector<spdlog::sink_ptr> sinks;
 
     sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-    sinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("Luz.log", true));
+    sinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("Tupla.log", true));
 
     sinks[0]->set_pattern("%^[%T] %v%$");
     sinks[1]->set_pattern("[%T] [%l] %v");
 
-    _logger = std::make_shared<spdlog::logger>("Luz", sinks.begin(), sinks.end());
+    _logger = std::make_shared<spdlog::logger>("Tupla", sinks.begin(), sinks.end());
     spdlog::register_logger(_logger);
     _logger->set_level(spdlog::level::trace);
     _logger->flush_on(spdlog::level::trace);
