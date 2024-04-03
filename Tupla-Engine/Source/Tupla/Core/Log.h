@@ -32,7 +32,7 @@ private:
 #define LOG_ERROR(...)    Logger::Get()->error(__VA_ARGS__)
 #define LOG_CRITICAL(...) Logger::Get()->critical(__VA_ARGS__); abort();
 
-#ifdef LUZ_DEBUG
+#ifdef TUP_DEBUG
 #define DEBUG_TRACE(...) Logger::Get()->trace(__VA_ARGS__)
 #else
 #define DEBUG_TRACE(...)

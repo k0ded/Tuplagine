@@ -4,8 +4,6 @@
 #include <filesystem>
 
 #include <CommonUtilities/Time/Time.h>
-
-#include "imgui/imgui.h"
 #include "Tupla/Renderer/DX11/DX11Renderer.h"
 
 namespace Tupla

@@ -5,15 +5,14 @@ namespace Tupla
 {
     struct Vertex
     {
-        //NOTE: When changing variables here you need to redefine descriptions in the vulkan impl.
         CU::Vector3f Position {};
         CU::Vector3f Normal{};
-        CU::Vector4f Tangent {};
         CU::Vector2f UV{};
+        CU::Vector3f Color{};
 
         bool operator==(const Vertex& other) const
         {
-            return Position == other.Position && Tangent == other.Tangent && Normal == other.Normal && UV == other.UV;
+            return Position == other.Position && Color == other.Color && Normal == other.Normal && UV == other.UV;
         }
     };
     
@@ -23,6 +22,7 @@ namespace Tupla
         virtual ~Mesh() = default;
 
         virtual void CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>& indices) = 0;
+        virtual void AttachMesh() = 0;
 
         [[nodiscard]] u32 GetVertexCount() const { return m_VertexCount; }
         [[nodiscard]] u32 GetIndexCount() const { return m_IndexCount; }

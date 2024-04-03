@@ -1,6 +1,7 @@
 #include <Tupla.h>
 
 #include "EditorLayer.h"
+#include "../../Tupla-Runtime/Source/RuntimeLayer.h"
 #include "Tupla/Core/EntryPoint.h"
 
 namespace Tupla
@@ -11,6 +12,7 @@ namespace Tupla
         Tuplitor(const ApplicationSpecification& spec) : Application(spec)
         {
             PushOverlay(new EditorLayer());
+            PushOverlay(new RuntimeLayer());
         }
     };
 

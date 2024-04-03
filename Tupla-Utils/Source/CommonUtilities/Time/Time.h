@@ -24,4 +24,4 @@ namespace Time
     {
         return stopWatch.GetTotalTime() - locTotalTimeOffset;
     }
-};
+}
