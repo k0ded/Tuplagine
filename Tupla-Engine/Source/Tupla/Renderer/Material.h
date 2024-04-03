@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "Tupla/Utils/Hashing.h"
 #include "Tupla/Core/Base.h"
 #include "Shader.h"
 
