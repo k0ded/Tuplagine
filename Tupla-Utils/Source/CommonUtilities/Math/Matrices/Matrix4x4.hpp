@@ -686,14 +686,15 @@ namespace CommonUtilities
     template <typename T>
     Matrix4x4<T> Matrix4x4<T>::CreatePerspectiveProjection(float aAspect, float aHorizontalFov, float aFar, float aNear)
     {
-	    const float t = tan(aHorizontalFov / 2);
+        const float vFov = 2 * atan(tan(aHorizontalFov * 0.5f) * aAspect);
+	    const float t = tan(vFov * 0.5f);
 
         return Matrix4x4(
             std::array<T, 16> {
-				1.0f / t, 0                 , 0                            , 0,
-                0       , aAspect * 1.0f / t, 0                            , 0,
-                0       , 0                 ,aFar / (aFar - aNear)         , 1,
-                0       , 0                 ,-aNear * aFar / (aFar - aNear), 0
+				aAspect * 1.0f / t, 0                 , 0                              , 0,
+                0                 , 1.0f / t          , 0                              , 0,
+                0                 , 0                 ,aFar / (aFar - aNear)           , 1,
+                0                 , 0                 ,-aNear * (aFar / (aFar - aNear)), 0
 			}
         );
     }
