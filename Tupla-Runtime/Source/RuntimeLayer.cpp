@@ -44,8 +44,7 @@ void Tupla::RuntimeLayer::OnUpdate()
 	Constants consts{};
 	consts.Transform = m_Transform;
 
-	const auto viewportSize = Application::Get().GetRenderer()->GetViewportSize();
-	const auto ar = static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y);
+	const auto ar = 16.f / 9.f;
 
 	float n = 1.f;
 	float h = 1.f;
