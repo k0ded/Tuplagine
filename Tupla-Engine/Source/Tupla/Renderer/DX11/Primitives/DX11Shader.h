@@ -38,8 +38,8 @@ namespace Tupla
 
 #define CONCAT_2(a, b) a##b
 #define CONCAT_3(a, b, c) a##b##c
-#define ADD_NAMESPACE(a, b) a##::##b
-#define SHADER_TYPE_IMPL(x) template <> inline CONCAT_3(ID3D11, x, Shader*) DX11Shader::GetShader() { ASSERT(m_Stage == ADD_NAMESPACE(ShaderStage, x), "ShaderStage mismatch! Expected:" #x); return CONCAT_3(m_, x, Shader);}
+#define ADD_NAMESPACE(a, b) a::b
+#define SHADER_TYPE_IMPL(x) template <> inline CONCAT_3(ID3D11, x, Shader*) DX11Shader::GetShader() { ASSERT(m_Stage == ADD_NAMESPACE(ShaderStage, x), "ShaderStage mismatch! Expected:" #x) return CONCAT_3(m_, x, Shader);}
 
 	SHADER_TYPE_IMPL(Vertex)
 	SHADER_TYPE_IMPL(Pixel)

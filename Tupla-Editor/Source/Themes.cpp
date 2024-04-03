@@ -64,7 +64,7 @@ void Tuplitor::Themes::SetTheme(Theme aTheme)
 }
 void Tuplitor::Themes::PopTheme()
 {
-	for (int i = myThemesHistory.size() - 1; i >= 0; i--)
+	for (int i = (int)myThemesHistory.size() - 1; i >= 0; i--)
 	{
 		switch (myThemesHistory.back())
 		{
@@ -162,7 +162,7 @@ void Tuplitor::Themes::SetSize(Size aSize)
 }
 void Tuplitor::Themes::PopSize()
 {
-	for (int i = mySizeHistory.size() - 1; i >= 0; i--)
+	for (int i = (int)mySizeHistory.size() - 1; i >= 0; i--)
 	{
 		switch (mySizeHistory.back())
 		{
