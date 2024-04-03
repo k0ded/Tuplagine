@@ -3,6 +3,9 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
+#include "DX11RenderingAssets.h"
+#include "CommonUtilities/Math/Matrices/Matrix4x4.hpp"
+#include "CommonUtilities/Time/Time.h"
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
@@ -15,6 +18,7 @@ namespace Tupla
 {
 	void DX11Renderer::StartWindow(const WindowProps& props)
 	{
+        m_RenderingAssets = std::make_unique<DX11RenderingAssets>();
 		m_Window = std::make_unique<WindowsWindow>(props);
 	}
 
@@ -23,6 +27,7 @@ namespace Tupla
         CreateSwapChain();
         CreateFrameBuffer();
         CreateDepthBuffer();
+        CreateStates();
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -89,8 +94,14 @@ namespace Tupla
         m_Context->ClearRenderTargetView(m_FrameBufferRTV, clearColor);
         m_Context->ClearDepthStencilView(m_DepthBufferDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-        SetRenderTexture(m_ViewportTexture.get());
         m_ViewportTexture->Clear({ 0.0555f, 0.1882f, 0.3882f, 1 });
+
+        m_Context->RSSetViewports(1, &m_DXViewport);
+        m_Context->RSSetState(m_RasterizerState);
+
+        m_Context->PSSetSamplers(0, 1, &m_SamplerState); // Set default sampler
+
+        SetRenderTexture(m_ViewportTexture.get());
         m_Context->OMSetDepthStencilState(m_DepthStencilState, 0);
         m_Context->OMSetBlendState(nullptr, nullptr, 0xffffffff); // use default blend mode (i.e. no blending)
 
@@ -113,8 +124,16 @@ namespace Tupla
             ImGui::RenderPlatformWindowsDefault();
         }
 
-        auto result = m_SwapChain->Present(1, 0);
+        auto result = m_SwapChain->Present(0, 0);
         ASSERT(SUCCEEDED(result), "Failed to present rendered frame!")
+	}
+
+	void DX11Renderer::RenderMesh(Ref<Mesh> mesh, Ref<Material> material)
+	{
+        mesh->AttachMesh();
+        material->AttachMaterial();
+
+        m_Context->DrawIndexed(mesh->GetIndexCount(), 0, 0);
 	}
 
 	void* DX11Renderer::GetViewportImage(const CU::Vector2ui& viewportSize)
@@ -139,16 +158,16 @@ namespace Tupla
 	{
         D3D_FEATURE_LEVEL featurelevels[] = { D3D_FEATURE_LEVEL_11_0 };
 
-        DXGI_SWAP_CHAIN_DESC swapchaindesc = {};
-        swapchaindesc.BufferDesc.Width = 0; // use window width
-        swapchaindesc.BufferDesc.Height = 0; // use window height
-        swapchaindesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-        swapchaindesc.SampleDesc.Count = 1;
-        swapchaindesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swapchaindesc.BufferCount = 2;
-        swapchaindesc.OutputWindow = (HWND)m_Window->GetWindowHandle();
-        swapchaindesc.Windowed = TRUE;
-        swapchaindesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        DXGI_SWAP_CHAIN_DESC swapchainDesc = {};
+        swapchainDesc.BufferDesc.Width = 0; // use window width
+        swapchainDesc.BufferDesc.Height = 0; // use window height
+        swapchainDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        swapchainDesc.SampleDesc.Count = 1;
+        swapchainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        swapchainDesc.BufferCount = 2;
+        swapchainDesc.OutputWindow = (HWND)m_Window->GetWindowHandle();
+        swapchainDesc.Windowed = TRUE;
+        swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 
         UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
@@ -164,16 +183,17 @@ namespace Tupla
             featurelevels,
             ARRAYSIZE(featurelevels),
             D3D11_SDK_VERSION,
-            &swapchaindesc,
+            &swapchainDesc,
             &m_SwapChain,
             &m_Device,
             nullptr,
             &m_Context
         );
 
-        m_SwapChain->GetDesc(&swapchaindesc);
+        m_SwapChain->GetDesc(&swapchainDesc);
 
-        m_RenderingSize = { swapchaindesc.BufferDesc.Width, swapchaindesc.BufferDesc.Height };
+        m_RenderingSize = { swapchainDesc.BufferDesc.Width, swapchainDesc.BufferDesc.Height };
+        m_DXViewport = { 0.0f, 0.0f, (float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height, 0.0f, 1.0f };
 	}
 
 	void DX11Renderer::ResizeSwapChain()
@@ -192,6 +212,8 @@ namespace Tupla
 
 		CreateFrameBuffer();
         CreateDepthBuffer();
+
+        m_DXViewport = { 0.0f, 0.0f, (float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height, 0.0f, 1.0f };
 	}
 
 	void DX11Renderer::CreateFrameBuffer()
@@ -229,7 +251,8 @@ namespace Tupla
         rasterizerdesc.FillMode = D3D11_FILL_SOLID;
         rasterizerdesc.CullMode = D3D11_CULL_BACK;
 
-        m_Device->CreateRasterizerState(&rasterizerdesc, &m_RasterizerState);
+        auto result = m_Device->CreateRasterizerState(&rasterizerdesc, &m_RasterizerState);
+        ASSERT(SUCCEEDED(result), "Failed to create RasterizerState")
 
         D3D11_SAMPLER_DESC samplerdesc = {};
         samplerdesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -238,13 +261,15 @@ namespace Tupla
         samplerdesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
         samplerdesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 
-        m_Device->CreateSamplerState(&samplerdesc, &m_SamplerState);
+        result = m_Device->CreateSamplerState(&samplerdesc, &m_SamplerState);
+        ASSERT(SUCCEEDED(result), "Failed to create SamplerState")
 
         D3D11_DEPTH_STENCIL_DESC depthstencildesc = {};
         depthstencildesc.DepthEnable = TRUE;
         depthstencildesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
         depthstencildesc.DepthFunc = D3D11_COMPARISON_LESS;
 
-        m_Device->CreateDepthStencilState(&depthstencildesc, &m_DepthStencilState);
+        result = m_Device->CreateDepthStencilState(&depthstencildesc, &m_DepthStencilState);
+        ASSERT(SUCCEEDED(result), "Failed to create DepthStencilState")
 	}
 }

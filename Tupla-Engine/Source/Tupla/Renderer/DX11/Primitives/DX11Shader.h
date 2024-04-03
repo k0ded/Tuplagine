@@ -11,13 +11,13 @@ namespace Tupla
 	{
 	public:
 		DX11Shader(DX11Renderer* renderer, const std::wstring& path, ShaderStage stage);
-		~DX11Shader();
+		~DX11Shader() override;
 
 		void CompileShader() override;
 
 		template <typename T>
 		T* GetShader() = delete;
-		ID3D11InputLayout* GetInputLayout() { return m_InputLayout; }
+		ID3D11InputLayout* GetInputLayout() const { return m_InputLayout; }
 		
 	private:
 		DX11Renderer* m_Renderer;

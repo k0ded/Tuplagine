@@ -4,7 +4,7 @@
 
 #include "WindowsWindow.h"
 #include "Primitives/DX11RenderTexture.h"
-#include "Primitives/DX11Shader.h"
+#include "Tupla/Renderer/Material.h"
 #include "Tupla/Renderer/Renderer.h"
 
 namespace Tupla
@@ -24,7 +24,10 @@ namespace Tupla
 		ID3D11Device* GetDevice() const { return m_Device; }
 		ID3D11DeviceContext* GetDeviceContext() const { return m_Context; }
 
+		void RenderMesh(Ref<Mesh> mesh, Ref<Material> material) override;
+
 		void* GetViewportImage(const CU::Vector2ui& viewportSize) override;
+		CU::Vector2ui GetViewportSize() override { return m_ViewportSize; }
 
 		void SetRenderTexture(const DX11RenderTexture* renderTexture = nullptr) const;
 
@@ -51,6 +54,7 @@ namespace Tupla
 		ID3D11RasterizerState* m_RasterizerState;
 		ID3D11SamplerState* m_SamplerState;
 		ID3D11DepthStencilState* m_DepthStencilState;
+		D3D11_VIEWPORT m_DXViewport;
 
 		Scope<DX11RenderTexture> m_ViewportTexture;
 
