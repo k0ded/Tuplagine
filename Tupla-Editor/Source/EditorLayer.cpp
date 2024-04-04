@@ -14,9 +14,6 @@ void Tupla::EditorLayer::OnGUI()
 
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 	ImGui::ShowDemoWindow();
-	ImGui::Begin("Something");
-	ImGui::SliderFloat("slidername", &someFloat, 0, 1);
-	ImGui::End();
 
 #pragma region Viewport
 
