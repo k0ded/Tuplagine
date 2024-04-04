@@ -131,7 +131,7 @@ namespace Tupla
 	void DX11Renderer::RenderMesh(Ref<Mesh> mesh, Ref<Material> material)
 	{
         mesh->AttachMesh();
-        material->AttachMaterial();
+        material->BindMaterial();
 
         m_Context->DrawIndexed(mesh->GetIndexCount(), 0, 0);
 	}

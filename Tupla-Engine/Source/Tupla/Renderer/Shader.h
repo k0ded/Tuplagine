@@ -4,13 +4,13 @@ namespace Tupla
 {
 	enum class ShaderStage
 	{
-        None,
 		Vertex,
         Hull,
         Domain,
         Pixel,
         Compute,
-        Count
+        Count,
+        None
 	};
 
     class Shader

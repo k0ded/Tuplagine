@@ -2,6 +2,7 @@
 #include "DX11RenderingAssets.h"
 
 #include "DX11Renderer.h"
+#include "Primitives/DX11Buffer.h"
 #include "Primitives/DX11Material.h"
 #include "Primitives/DX11Mesh.h"
 #include "Primitives/DX11Shader.h"
@@ -29,4 +30,10 @@ Tupla::Scope<Tupla::Mesh> Tupla::DX11RenderingAssets::CreateMesh()
 {
 	auto renderer = (DX11Renderer*)Application::Get().GetRenderer();
 	return CreateScope<Tupla::DX11Mesh>(renderer);
+}
+
+Tupla::Scope<Tupla::Buffer> Tupla::DX11RenderingAssets::CreateBuffer(u32 byteSize)
+{
+	auto renderer = (DX11Renderer*)Application::Get().GetRenderer();
+	return CreateScope<Tupla::DX11Buffer>(renderer, byteSize);
 }

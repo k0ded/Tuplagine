@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Buffer.h"
 #include "Texture.h"
 #include "Material.h"
 #include "Mesh.h"
@@ -14,5 +15,6 @@ namespace Tupla
         virtual Scope<Shader> CreateShader(const std::wstring& virtualPath, ShaderStage stage) = 0;
         virtual Scope<Texture> CreateTexture() = 0;
         virtual Scope<Mesh> CreateMesh() = 0;
+        virtual Scope<Buffer> CreateBuffer(u32 byteSize) = 0;
     };
 }

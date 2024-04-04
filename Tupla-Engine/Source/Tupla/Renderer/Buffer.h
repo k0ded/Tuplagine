@@ -2,22 +2,27 @@
 
 namespace Tupla
 {
-#define BUFFER_MAX_SIZE (~1ull)
-    
     class Buffer
     {
     public:
         virtual ~Buffer() = default;
         
-        virtual bool Map(u64 size = BUFFER_MAX_SIZE, u64 offset = 0) = 0;
+        virtual bool Map() = 0;
         virtual void Unmap() = 0;
 
-        virtual void WriteToBuffer(const void* data, u64 size = BUFFER_MAX_SIZE, u64 offset = 0) const = 0;
-        virtual bool Flush(u64 size = BUFFER_MAX_SIZE, u64 offset = 0) const = 0;
+        template <typename T>
+        void WriteToBuffer(const T& aType, u64 offset = 0)
+        {
+            WriteToBuffer(&aType, sizeof(T), offset);
+        }
 
         [[nodiscard]] void* GetMappedMemory() const { return m_MappedMemory; }
+        [[nodiscard]] void* GetGPUMemory() const { return m_GPUMemory; }
 
     protected:
-        void* m_MappedMemory = nullptr;
+        virtual void WriteToBuffer(const void* data, u64 size, u64 offset = 0) = 0;
+
+        void* m_GPUMemory = nullptr;
+    	void* m_MappedMemory = nullptr;
     };
 }

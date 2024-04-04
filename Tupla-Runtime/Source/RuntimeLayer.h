@@ -17,6 +17,8 @@ namespace Tupla
         Ref<Mesh> m_Mesh;
         Ref<Material> m_Material;
         Ref<Texture> m_Texture;
+        Ref<Buffer> m_ConstantBuffer;
+        Ref<Buffer> m_CameraBuffer;
 
         CU::Matrix4x4<float> m_Transform;
     };

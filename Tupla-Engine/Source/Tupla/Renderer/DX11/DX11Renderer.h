@@ -7,6 +7,8 @@
 #include "Tupla/Renderer/Material.h"
 #include "Tupla/Renderer/Renderer.h"
 
+#define BUFFER_PERFORMANCE_WARN 1
+
 namespace Tupla
 {
 	class DX11Renderer : public Renderer

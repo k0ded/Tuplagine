@@ -15,20 +15,17 @@ namespace Tupla
 	{
 	public:
 		DX11Material(DX11Renderer* renderer);
-		~DX11Material();
 
 		void SetShaderStage(Ref<Shader> shader) override;
 		void AttachImage(Ref<Texture> texture) override;
-
-		void UpdateConstants(const Constants& consts) const override;
-		void AttachMaterial() const override;
+		void AttachBuffer(Ref<Buffer> buffer, ShaderStage stage) override;
+		void BindMaterial() const override;
 
 	private:
 		DX11Renderer* m_Renderer;
 
-		ID3D11Buffer* m_ConstantBuffer;
-
+		std::array<std::vector<ID3D11Buffer*>, static_cast<u64>(ShaderStage::Count)> m_Buffers;
 		std::vector<Ref<Texture>> m_AttachedTextures;
-		std::array<Ref<Shader>, static_cast<size_t>(ShaderStage::Count) - 1> m_Shaders;
+		std::array<Ref<Shader>, static_cast<size_t>(ShaderStage::Count)> m_Shaders;
 	};
 }

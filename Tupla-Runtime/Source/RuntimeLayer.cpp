@@ -32,12 +32,23 @@ Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 	Ref<Shader> vert = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader(L"./gpu.hlsl", ShaderStage::Vertex);
 	Ref<Shader> ps = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader(L"./gpu.hlsl", ShaderStage::Pixel);
 
+	m_ConstantBuffer = Application::Get().GetRenderer()->GetRenderingAssets()->CreateBuffer(sizeof(Constants));
+	m_CameraBuffer = Application::Get().GetRenderer()->GetRenderingAssets()->CreateBuffer(sizeof(CameraData));
+
+
+
 	m_Texture = Application::Get().GetRenderer()->GetRenderingAssets()->CreateTexture();
 	m_Texture->SetImageData(texturedata, 2, 2);
 	m_Material->SetShaderStage(vert);
 	m_Material->SetShaderStage(ps);
 	m_Material->AttachImage(m_Texture);
+	m_Material->AttachBuffer(m_ConstantBuffer, ShaderStage::Vertex); // SLOT 0
+	m_Material->AttachBuffer(m_CameraBuffer, ShaderStage::Vertex);   // SLOT 1
 
+
+	CameraData data{};
+	data.worldToClip = CU::Matrix4x4<float>::CreatePerspectiveProjection((16.f / 9.f), 90.f * Nerd::DEG2RAD, 1000.f, 0.1f);
+	m_CameraBuffer->WriteToBuffer(data);
 
 	m_Transform = CU::Matrix4x4<float>();
 	m_Transform.SetPosition({ 0.f, 0.f, 4.f });
@@ -52,16 +63,10 @@ void Tupla::RuntimeLayer::OnUpdate()
 	const auto vpSize = Application::Get().GetRenderer()->GetViewportSize();
 	const auto ar = static_cast<float>(vpSize.x) / static_cast<float>(vpSize.y);
 
-	float n = 1.f;
-	float h = 1.f;
-	float f = 9.f;
-
-	consts.Projection = CU::Matrix4x4<float>(std::array<float, 16>{ 2 * n / ar, 0, 0, 0, 0, 2 * n / h, 0, 0, 0, 0, f / (f - n), 1, 0, 0, n * f / (n - f), 0 });
-
-	//consts.Projection = CU::Matrix4x4<float>::CreatePerspectiveProjection(ar, 90.f * Nerd::DEG2RAD, 1000.f, 0.1f);
 	consts.LightVector = { 1.f, -1.f, 1.f };
 	CU::Matrix4x4<float> transform = CU::Matrix4x4<float>();
-	m_Material->UpdateConstants(consts);
+
+	m_ConstantBuffer->WriteToBuffer(consts);
 
 	Application::Get().GetRenderer()->RenderMesh(m_Mesh, m_Material);
 }
