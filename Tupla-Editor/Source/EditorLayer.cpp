@@ -29,6 +29,22 @@ void Tupla::EditorLayer::OnGUI()
 	ImGui::Begin("Scene");
 	auto wSize = ImGui::GetContentRegionAvail();
 	// Queues viewport image resize
+	// Math to make the viewport stay 16:9			// Should be for game and not scene, should be able to configure window padding, should affect neighbouring docks
+	bool lockAspectRatio = true;
+	if (lockAspectRatio)
+	{
+		auto xScale = wSize.x / 16.f;
+		auto yScale = wSize.y / 9.f;
+
+		if (xScale > yScale) {
+
+		wSize.x = (16.f / 9.f * wSize.y);
+		}
+		else {
+		wSize.y = (9.f / 16.f * wSize.x);
+
+		}
+	}
 	void* imguiImage = Application::Get().GetRenderer()->GetViewportImage({ static_cast<unsigned>(wSize.x), static_cast<unsigned>(wSize.y) });
 	ImGui::Image(imguiImage, wSize);
 	ImGui::End();
