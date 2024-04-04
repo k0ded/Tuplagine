@@ -3,81 +3,64 @@
 #include <Tupla.h>
 #include "Themes.h"
 
-static float someFloat = 0.f;
+#include "Inspector.h"
+#include "Hierarchy.h"
+#include "Assets.h"
+#include "Console.h"
+#include "PackageManager.h"
 
 void Tupla::EditorLayer::OnGUI()
 {
+#pragma region Themes and Layout
+
+	// Tghemes and Size
 	Tuplitor::Themes themes;
 	themes.SetTheme(Tuplitor::Theme::Tupla);
 	themes.SetSize(Tuplitor::Size::Rounded);
 	themes.SetFont(Tuplitor::Font::Tratex);
 
-	ImGui::ShowDemoWindow();
-	ImGui::Begin("Something");
-	ImGui::SliderFloat("slidername", &someFloat, 0, 1);
-	ImGui::End();
-
-
-#pragma region Inspector
-
-	{
-		ImGui::Begin("Inspector");
-		ImGui::End();
-	}
+	// Docking
+	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 #pragma endregion
 
-#pragma region Hierarchy
+#pragma region Modules
 
 	{
-		ImGui::Begin("Hierarchy");
-		ImGui::End();
+		Inspector inspector;
 	}
-
-#pragma endregion
-
-#pragma region Assets
-
 	{
-		ImGui::Begin("Assets");
-		ImGui::End();
+		Hierarchy hierarchy;
 	}
-
-#pragma endregion
-
-#pragma region Package Manager
-
 	{
-		ImGui::Begin("Package Manager");
-		ImGui::End();
+		Assets assets;
 	}
-
-#pragma endregion
-
-#pragma region Project Settings
-
+	{
+		Console console;
+	}
+	{
+		PackageManager packageManager;
+	} 
 	{
 		ImGui::Begin("Project Settings");
+		// Can configure project settings.
 		ImGui::End();
-	}
-
-#pragma endregion
-
-#pragma region Preferences
-
+		//ProjectSettings projectSettings;
+	} 
 	{
 		ImGui::Begin("Preferences");
+		// Can configure editor preferences.
 		ImGui::End();
-	}
-
-#pragma endregion
-
-#pragma region Build Settings
-
+		//Preferences preferences;
+	} 
 	{
 		ImGui::Begin("Build Settings");
+		// Can build the game
 		ImGui::End();
+		//BuildSettings buildSettings;
 	}
 
 #pragma endregion
+
+	ImGui::ShowDemoWindow();
 }

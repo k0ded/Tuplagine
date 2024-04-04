@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <imgui.h>
 
 namespace Tuplitor
 {
@@ -32,6 +33,9 @@ namespace Tuplitor
 
 		void SetFont(Font aFont);
 		void PopFont();
+
+
+		ImVec4 RGBA(float aR, float aG, float aGaB, float aA);
 
 	private:
 		std::vector<Theme> myThemesHistory;

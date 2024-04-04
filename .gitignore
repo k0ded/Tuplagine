@@ -13,3 +13,4 @@ Binaries/
 *.sln
 *.log
 Makefile
+*.ini
