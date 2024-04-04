@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Texture.h"
-#include "Buffer.h"
+#include "Material.h"
 #include "Mesh.h"
 #include "Shader.h"
 
@@ -10,9 +10,9 @@ namespace Tupla
     {
     public:
         virtual ~RenderingAssets() = default;
-        virtual Scope<Buffer> CreateBuffer(u64 instanceSize, u32 instanceCount, i32 bUsage, i32 mUsage) = 0;
+        virtual Scope<Material> CreateMaterial() = 0;
+        virtual Scope<Shader> CreateShader(const std::wstring& virtualPath, ShaderStage stage) = 0;
         virtual Scope<Texture> CreateTexture() = 0;
         virtual Scope<Mesh> CreateMesh() = 0;
-        virtual Scope<Shader> CreateShader(const std::string& virtualPath) = 0;
     };
 }

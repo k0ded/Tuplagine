@@ -16,7 +16,6 @@ project "Tupla-Engine"
    {
         "Source",
         "../Tupla-Utils/Source",
-        "$(VULKAN_SDK)/include",
 		"vendor/External/"
    }
 
@@ -27,7 +26,6 @@ project "Tupla-Engine"
    links { 
     "External",
     "Tupla-Utils",
-    "$(VULKAN_SDK)/lib/vulkan-1",
     "glfw3.lib"
     }
 
@@ -36,10 +34,11 @@ project "Tupla-Engine"
 
    targetdir ("../Binaries/" .. OutputDir .. "/%{prj.name}")
    objdir ("../Binaries/Intermediates/" .. OutputDir .. "/%{prj.name}")
+   defines { "GLSL_VALIDATOR=\"$(VULKAN_SDK)/Bin/glslangValidator\"" }
 
    filter "system:windows"
        systemversion "latest"
-       defines { }
+       defines { "GLSL_VALIDATOR=\"$(VULKAN_SDK)/Bin/glslangValidator.exe\"" }
 
    filter "configurations:Debug"
        defines { "DEBUG" }

@@ -3,6 +3,7 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
+#define TUP_ENGINE
 
 #include <iostream>
 #include <memory>
@@ -21,5 +22,6 @@
 #include <CommonUtilities/Math/Vector/Vector.h>
 
 #include "Tupla/Core/Base.h"
+#include "Tupla/Core/Log.h"
 
 #include <Windows.h>

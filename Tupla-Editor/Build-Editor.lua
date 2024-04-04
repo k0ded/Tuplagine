@@ -14,12 +14,14 @@ project "Tupla-Editor"
 	  -- Include Core
 	  "../Tupla-Engine/Source",
 	  "../Tupla-Utils/Source",
+      "../Tupla-Runtime/Source",
       "../Tupla-Engine/vendor/External/imgui"
    }
 
    links
    {
       "Tupla-Engine",
+      "Tupla-Runtime",
       "Tupla-Utils"
    }
 

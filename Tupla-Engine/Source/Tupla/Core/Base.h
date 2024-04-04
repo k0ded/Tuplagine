@@ -5,6 +5,7 @@
 #include "Tupla/Utils/Hashing.h"
 #include <combaseapi.h>
 #include <format>
+#include <set>
 
 #define T_EXPAND_MACRO(x) x
 #define T_STRINGIFY_MACRO(x) #x
@@ -40,3 +41,37 @@ namespace Tupla
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
 }
+
+#ifdef _WIN32
+    #ifndef _WIN64
+        #error "x86 not supported!"
+    #endif
+    #define TUP_PLATFORM_WINDOWS
+#endif
+
+#ifdef __linux__
+    #define TUP_PLATFORM_LINUX
+#endif
+
+#ifdef _DEBUG
+    #ifdef TUP_PLATFORM_WINDOWS
+        #define TUP_DEBUGBREAK() __debugbreak()
+    #endif
+
+    #ifdef TUP_PLATFORM_LINUX
+    #include <csignal>
+    #define TUP_DEBUGBREAK() raise(SIGTRAP)
+    #endif
+#else
+#define TUP_DEBUGBREAK()
+#endif 
+
+#define ASSERT(condition, ...) { if (!(condition)) { LOG_ERROR("[ASSERTION FAILED] {0}", __VA_ARGS__); abort(); } }
+
+#ifdef _DEBUG
+#define DEBUG_ASSERT(condition, ...) { if (!(condition)) { LOG_ERROR("[ASSERTION FAILED] {0}", __VA_ARGS__); TUP_DEBUGBREAK(); } }
+#define DEBUG_VK(res, ...) { if ((res) != VK_SUCCESS) { LOG_ERROR("[VULKAN ERROR = {0}] {1}", VK_ERROR_STRING((res)), __VA_ARGS__); TUP_DEBUGBREAK(); } }
+#else
+#define DEBUG_ASSERT(condition, ...)
+#define DEBUG_VK(res, ...)
+#endif

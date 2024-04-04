@@ -1,5 +1,5 @@
 project "Tupla-Runtime"
-   kind "ConsoleApp"
+   kind "StaticLib"
    language "C++"
    cppdialect "C++20"
    targetdir "Binaries/%{cfg.buildcfg}"

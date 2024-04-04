@@ -16,7 +16,7 @@ namespace Tupla
     Application* CreateApplication(const ApplicationCommandLineArgs args)
     {
         Tupla::ApplicationSpecification spec;
-        spec.ApplicationName = "Tuplitor - Game";
+        spec.ApplicationName = L"Tuplitor - Game";
         spec.CommandLineArgs = args;
 
         return new Tuplactivity(spec);

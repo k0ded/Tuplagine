@@ -21,6 +21,27 @@ void Tupla::EditorLayer::OnGUI()
 
 	// Docking
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+	ImGui::ShowDemoWindow();
+
+#pragma region Viewport
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
+	ImGui::Begin("Scene");
+	auto wSize = ImGui::GetContentRegionAvail();
+	// Queues viewport image resize
+	void* imguiImage = Application::Get().GetRenderer()->GetViewportImage({ static_cast<unsigned>(wSize.x), static_cast<unsigned>(wSize.y) });
+	ImGui::Image(imguiImage, wSize);
+	ImGui::End();
+	ImGui::PopStyleVar();
+#pragma endregion
+
+
+#pragma region Inspector
+
+	{
+		ImGui::Begin("Inspector");
+		ImGui::End();
+	}
 
 #pragma endregion
 

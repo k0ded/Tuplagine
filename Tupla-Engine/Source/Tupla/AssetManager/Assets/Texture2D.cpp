@@ -17,21 +17,41 @@ namespace Tupla
         }
 
         m_Texture = Application::Get().GetRenderer()->GetRenderingAssets()->CreateTexture();
-        m_Texture->SetImageData(pixels, texWidth, texHeight, 4);
+        m_Texture->SetImageData(pixels, texWidth, texHeight);
         stbi_image_free(pixels);
     }
 
-    std::string Texture2D::SerializeAsset()
+    u64 Texture2D::SerializeAsset(std::byte** outResult)
     {
-        return "EMPTY SERIALIZATION ATM";
+        if(m_Texture)
+        {
+			return m_Texture->GetImageData(outResult);
+        }
+        return 0;
     }
 
-    void Texture2D::DeserializeAssetPacked(const std::string& data)
+    void Texture2D::DeserializeAssetPacked(const std::byte* data, u64 dataSize)
     {
+        ASSERT(dataSize < 5, "INVALID PACKED TEXTURE FORMAT");
+
+        // For specification see DX11Texture.cpp
+
+    	u16 width;
+    	u16 height;
+
+        memcpy(&width, &data[0], sizeof(u16));
+        memcpy(&height, &data[2], sizeof(u16));
+
+    	// Image data after this block
+        m_Texture->SetImageData((void*)&data[4], width, height);
     }
 
-    std::string Texture2D::SerializeAssetPacked()
+    u64 Texture2D::SerializeAssetPacked(std::byte** outResult)
     {
-        return "EMPTY SERIALIZATION ATM";
+        if(m_Texture)
+        {
+            return m_Texture->GetImageData(outResult);
+        }
+        return 0;
     }
 }

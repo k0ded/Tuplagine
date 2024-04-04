@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Material.h"
 #include "RenderingAssets.h"
 #include "Tupla/Core/Window.h"
 
@@ -27,6 +28,11 @@ namespace Tupla
 
         virtual void BeginFrame() = 0;
         virtual void EndFrame() = 0;
+
+        virtual void RenderMesh(Ref<Mesh> mesh, Ref<Material> material) = 0;
+
+        virtual void* GetViewportImage(const CU::Vector2ui& viewportSize) = 0;
+        virtual CU::Vector2ui GetViewportSize() = 0;
 
         virtual Window* GetWindow() = 0;
         

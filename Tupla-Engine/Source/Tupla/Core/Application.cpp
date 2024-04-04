@@ -4,8 +4,7 @@
 #include <filesystem>
 
 #include <CommonUtilities/Time/Time.h>
-
-#include "Tupla/Renderer/Vulkan/VulkanRenderer.h"
+#include "Tupla/Renderer/DX11/DX11Renderer.h"
 
 namespace Tupla
 {
@@ -13,8 +12,10 @@ namespace Tupla
     {
         m_Restarting = false;
         s_Application = this;
+        Logger::Init();
+        
         m_AssetManager = CreateScope<AssetManager>();
-        m_Renderer = CreateScope<VulkanRenderer>();
+        m_Renderer = CreateScope<DX11Renderer>();
         m_Renderer->StartWindow({ m_Specification.ApplicationName });
         m_Renderer->Init();
 
@@ -48,20 +49,19 @@ namespace Tupla
             Time::Update();
 
             m_Renderer->BeginFrame();
+            {
+                for (const auto layer : m_LayerStack)
                 {
-                    for (const auto layer : m_LayerStack)
-                    {
-                        layer->OnUpdate();
-                    }
+                    layer->OnUpdate();
                 }
+            }
 
+            {
+                for (const auto layer : m_LayerStack)
                 {
-                    for (const auto layer : m_LayerStack)
-                    {
-                        layer->OnGUI();
-                    }
+                    layer->OnGUI();
                 }
-            
+            }
             
             m_Renderer->EndFrame();
 
