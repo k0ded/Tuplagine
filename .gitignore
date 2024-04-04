@@ -12,4 +12,5 @@ Binaries/
 *.vcxproj.filters
 *.sln
 *.log
+*.ini
 Makefile
