@@ -147,10 +147,18 @@ namespace Tupla
         if(renderTexture)
         {
             m_Context->OMSetRenderTargets(1, &renderTexture->m_TextureRTV, renderTexture->m_DepthDSV);
+            m_Context->RSSetViewports(1, &renderTexture->m_Viewport);
         }
         else
         {
             m_Context->OMSetRenderTargets(1, &m_FrameBufferRTV, m_DepthBufferDSV);
+
+            D3D11_VIEWPORT vp = {
+            	0.f, 0.f,
+            	static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()),
+            0.f, 1.f
+            };
+            m_Context->RSSetViewports(1, &vp);
         }
 	}
 

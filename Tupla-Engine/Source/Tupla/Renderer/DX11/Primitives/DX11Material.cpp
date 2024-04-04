@@ -62,9 +62,9 @@ namespace Tupla
 
 		std::vector<ID3D11ShaderResourceView*> views(m_AttachedTextures.size());
 
-		for (const auto& view : m_AttachedTextures)
+		for (int i = 0; i < views.size(); ++i)
 		{
-			views.push_back((ID3D11ShaderResourceView*)view->ImGuiRID());
+			views[i] = (ID3D11ShaderResourceView*)m_AttachedTextures[i]->ImGuiRID();
 		}
 
 		dcontext->PSSetShaderResources(0, static_cast<u32>(views.size()), views.data());

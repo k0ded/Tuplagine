@@ -22,6 +22,7 @@ namespace Tupla
 		ID3D11RenderTargetView* m_TextureRTV {};
 		ID3D11Texture2D* m_DepthTexture {};
 		ID3D11DepthStencilView* m_DepthDSV {};
+		D3D11_VIEWPORT m_Viewport {};
 		bool m_UsesDepth;
 	};
 }

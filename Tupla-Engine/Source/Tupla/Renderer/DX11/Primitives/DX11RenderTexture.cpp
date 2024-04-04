@@ -44,6 +44,8 @@ Tupla::DX11RenderTexture::DX11RenderTexture(DX11Renderer* renderer, const u32 wi
 
 	result = m_Renderer->GetDevice()->CreateDepthStencilView(m_DepthTexture, nullptr, &m_DepthDSV);
 	ASSERT(SUCCEEDED(result), "Failed to create depth stencil view")
+
+	m_Viewport = { 0.f, 0.f, static_cast<float>(m_Width), static_cast<float>(m_Height), 0.f, 1.f };
 }
 
 Tupla::DX11RenderTexture::~DX11RenderTexture()

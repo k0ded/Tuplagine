@@ -27,13 +27,13 @@ private:
 	static std::shared_ptr<spdlog::logger> _logger;
 };
 
-#define LOG_INFO(...)     Logger::Get()->info(__VA_ARGS__)
-#define LOG_WARN(...)     Logger::Get()->warn(__VA_ARGS__)
-#define LOG_ERROR(...)    Logger::Get()->error(__VA_ARGS__)
-#define LOG_CRITICAL(...) Logger::Get()->critical(__VA_ARGS__); abort();
+#define LOG_INFO(...)     ::Logger::Get()->info(__VA_ARGS__)
+#define LOG_WARN(...)     ::Logger::Get()->warn(__VA_ARGS__)
+#define LOG_ERROR(...)    ::Logger::Get()->error(__VA_ARGS__)
+#define LOG_CRITICAL(...) ::Logger::Get()->critical(__VA_ARGS__); abort();
 
 #ifdef TUP_DEBUG
-#define DEBUG_TRACE(...) Logger::Get()->trace(__VA_ARGS__)
+#define DEBUG_TRACE(...) ::Logger::Get()->trace(__VA_ARGS__)
 #else
 #define DEBUG_TRACE(...)
 #endif

@@ -16,6 +16,7 @@ namespace Tupla
     private:
         Ref<Mesh> m_Mesh;
         Ref<Material> m_Material;
+        Ref<Texture> m_Texture;
 
         CU::Matrix4x4<float> m_Transform;
     };
