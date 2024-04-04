@@ -7,7 +7,7 @@ Console::Console()
 	ImGui::Begin("Console");
 
 	Log("Hello World");
-
+	 
 	// Print Logs
 	switch (myPrintStructure)
 	{
