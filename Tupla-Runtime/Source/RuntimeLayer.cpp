@@ -14,15 +14,15 @@ Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 	int cursor = 0;
 	while(cursor < sizeof(vertexdata) / sizeof(Vertex))
 	{
-		const int floatCursor = cursor * 11;
+		const int floatCursor = cursor * sizeof(Vertex) / sizeof(float);
 		vec.push_back(Tupla::Vertex{
 			{ vertexdata[floatCursor], vertexdata[floatCursor + 1], vertexdata[floatCursor + 2] },
 			{ vertexdata[floatCursor + 3], vertexdata[floatCursor + 4], vertexdata[floatCursor + 5] },
 			{ vertexdata[floatCursor + 6], vertexdata[floatCursor + 7] },
+
 			{ vertexdata[floatCursor + 8], vertexdata[floatCursor + 9], vertexdata[floatCursor + 10] }
 			}
 		);
-
 		cursor++;
 	}
 
@@ -31,11 +31,13 @@ Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 
 	Ref<Shader> vert = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader(L"./gpu.hlsl", ShaderStage::Vertex);
 	Ref<Shader> ps = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader(L"./gpu.hlsl", ShaderStage::Pixel);
+
 	m_Texture = Application::Get().GetRenderer()->GetRenderingAssets()->CreateTexture();
 	m_Texture->SetImageData(texturedata, 2, 2);
 	m_Material->SetShaderStage(vert);
 	m_Material->SetShaderStage(ps);
 	m_Material->AttachImage(m_Texture);
+
 
 	m_Transform = CU::Matrix4x4<float>();
 	m_Transform.SetPosition({ 0.f, 0.f, 4.f });
