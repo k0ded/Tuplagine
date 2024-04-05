@@ -1,6 +1,7 @@
 #pragma once
 #include "HotDefines.h"
 #include "HotComponentCollection.h"
+#include <unordered_map>
 
 namespace Tupla
 {

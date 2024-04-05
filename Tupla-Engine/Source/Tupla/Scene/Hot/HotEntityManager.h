@@ -1,5 +1,6 @@
 #pragma once
 #include <queue>
+#include <array>
 
 #include "HotDefines.h"
 
@@ -41,7 +42,7 @@ namespace Tupla
 			--mLivingEntityCount;
 		}
 
-		void SetSignature(HOTEntity entity, Signature signature)
+		void SetSignature(HOTEntity entity, HOTSignature signature)
 		{
 			assert(entity < MAX_ENTITIES && "Entity out of range.");
 
@@ -49,7 +50,7 @@ namespace Tupla
 			mSignatures[entity] = signature;
 		}
 
-		Signature GetSignature(HOTEntity entity)
+		HOTSignature GetSignature(HOTEntity entity)
 		{
 			assert(entity < MAX_ENTITIES && "Entity out of range.");
 
@@ -62,7 +63,7 @@ namespace Tupla
 		std::queue<HOTEntity> mAvailableEntities{};
 
 		// Array of signatures where the index corresponds to the entity ID
-		std::array<Signature, MAX_ENTITIES> mSignatures{};
+		std::array<HOTSignature, MAX_ENTITIES> mSignatures{};
 
 		// Total living entities - used to keep limits on how many exist
 		uint32_t mLivingEntityCount{};

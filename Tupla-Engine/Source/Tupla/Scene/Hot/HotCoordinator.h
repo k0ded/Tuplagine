@@ -87,7 +87,7 @@ namespace Tupla
 		}
 
 		template<typename T>
-		void SetSystemSignature(Signature signature)
+		void SetSystemSignature(HOTSignature signature)
 		{
 			mSystemManager->SetSignature<T>(signature);
 		}

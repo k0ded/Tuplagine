@@ -59,9 +59,11 @@ namespace Tupla
         }
 
         GUID GetId() const { return m_Id; }
+        const char* GetName() { return m_Name.c_str(); };
+        const std::string& ToString() const { return m_Name; };
 
     private:
-        std::string m_Name;
+        std::string m_Name = "GameObject";
         std::vector<Ref<IComponent>> m_Components;
 
 #ifdef DEBUG

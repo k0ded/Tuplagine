@@ -24,7 +24,7 @@ namespace Tupla
 		}
 
 		template<typename T>
-		void SetSignature(Signature signature)
+		void SetSignature(HOTSignature signature)
 		{
 			uint8_t& index = RUNTIME_STATIC_STORAGE<T>::mIndex;
 
@@ -46,7 +46,7 @@ namespace Tupla
 			}
 		}
 
-		void EntitySignatureChanged(HOTEntity entity, Signature entitySignature)
+		void EntitySignatureChanged(HOTEntity entity, HOTSignature entitySignature)
 		{
 			// Notify each system that an entity's signature changed
 			for (auto const& pair : m_Systems)
@@ -88,7 +88,7 @@ namespace Tupla
 
 	private:
 		// Map from system type string pointer to a signature
-		std::unordered_map<SystemType, Signature> m_Signatures{};
+		std::unordered_map<SystemType, HOTSignature> m_Signatures{};
 		std::unordered_map<SystemType, std::shared_ptr<HotSystem>> m_Systems{};
 
 		SystemType m_NextSystemType = 0;

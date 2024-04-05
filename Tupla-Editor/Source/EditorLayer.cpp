@@ -8,6 +8,7 @@
 #include "Assets.h"
 #include "Console.h"
 #include "PackageManager.h"
+#include "Tupla/Scene/SceneManager.h"
 
 void Tupla::EditorLayer::OnGUI()
 {
@@ -34,6 +35,13 @@ void Tupla::EditorLayer::OnGUI()
 	ImGui::End();
 	ImGui::PopStyleVar();
 #pragma endregion
+
+	ImGui::Begin("Create");
+	if(ImGui::Button("Create Entity"))
+	{
+		SceneManager::GetActiveScene().CreateEntity();
+	}
+	ImGui::End();
 
 
 #pragma region Inspector

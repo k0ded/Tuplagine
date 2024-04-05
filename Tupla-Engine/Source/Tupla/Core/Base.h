@@ -16,14 +16,18 @@
 
 namespace Tupla
 {
-    /*inline std::string GetAsString(GUID& guid)
+    inline std::string GetAsString(const GUID& guid)
     {
-        // From JustinB at https://stackoverflow.com/questions/1672677/print-a-guid-variable
-        return std::format("GUID = {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
-                guid.Data1, guid.Data2, guid.Data3, 
-                guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
-                guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-    }*/
+        char guid_string[37]; // 32 hex chars + 4 hyphens + null terminator
+        snprintf(
+            guid_string, sizeof(guid_string),
+            "%08lx-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+            guid.Data1, guid.Data2, guid.Data3,
+            guid.Data4[0], guid.Data4[1], guid.Data4[2],
+            guid.Data4[3], guid.Data4[4], guid.Data4[5],
+            guid.Data4[6], guid.Data4[7]);
+        return guid_string;
+    }
     
     template<typename T>
     using Scope = std::unique_ptr<T>;

@@ -19,9 +19,10 @@ namespace Tupla
         m_MatSystem = m_Coordinator.RegisterSystem<MaterialSystem>();
 	}
 
-    void Scene::CreateEntity()
+    Entity& Scene::CreateEntity()
     {
         m_Entities.emplace_back(this);
+        return m_Entities.back();
     }
 
     Entity* Scene::GetEntity(const GUID id)

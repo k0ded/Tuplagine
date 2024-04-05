@@ -8,7 +8,7 @@ using SystemType = uint8_t;
 constexpr HOTEntity MAX_ENTITIES = 5000;
 constexpr ComponentType MAX_COMPONENTS = 32;
 
-using Signature = std::bitset<MAX_COMPONENTS>;
+using HOTSignature = std::bitset<MAX_COMPONENTS>;
 
 template<typename T>
 struct RUNTIME_STATIC_STORAGE

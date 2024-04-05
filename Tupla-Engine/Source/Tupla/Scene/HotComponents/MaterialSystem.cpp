@@ -28,7 +28,6 @@ void Tupla::MaterialSystem::Update(HotCoordinator* coordinator)
 		CU::Matrix4x4<float> tPos = CU::Matrix4x4<float>::CreateRotation(trans.WorldPosition);
 
 		mat.ObjectConstants.Transform = tPos * tRot;
-		mat.ObjectConstants.Projection = CU::Matrix4x4<float>::CreatePerspectiveProjection(16.f / 9.f, 90.f * CU::Math::DEG2RAD, 0.1f, 1000.f);
 		mat.ObjectConstants.LightVector = { 1.f, -1.f, 1.f };
 	}
 }

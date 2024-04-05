@@ -11,13 +11,14 @@ namespace Tupla
     public:
         Scene();
 
-        void CreateEntity();
+        Entity& CreateEntity();
         Entity* GetEntity(GUID id);
         void DeleteEntity(GUID id);
 
         // Behaviour Functions
         void Update();
 
+        std::vector<Entity>& GetEntities() { return m_Entities; }
 
         HotCoordinator& GetHOT() { return m_Coordinator; }
     private:
