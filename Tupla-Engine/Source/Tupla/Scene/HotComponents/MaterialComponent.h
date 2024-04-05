@@ -6,6 +6,6 @@ namespace Tupla
 	struct MaterialComponent
 	{
 		std::array<Ref<Texture>, 8> Textures;
-		Constants VertexConstants;
+		Constants ObjectConstants;
 	};
 }

@@ -22,6 +22,17 @@ namespace Tupla
         if(!m_Specification.WorkingDirectory.empty())
             std::filesystem::current_path(m_Specification.WorkingDirectory);
 
+        // EXAMPLE OF HOW TO MAKE ASYNC JOBS!
+        // m_JobManager.ScheduleJob(Job([this] {
+        // 	while (m_progress < 100.f)
+	    //     {
+        //         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        //         m_progress += 0.105f;
+	    //     }
+        // }));
+        // m_JobManager.ScheduleJob(Job([this] { while (m_progress < 100.f) { std::cout << m_progress << '\n'; }}));
+        // m_JobManager.BurstJobs(); // DISPATCHES THE JOBS AND CONTINUES EXECUTION
+        // m_JobManager.Await(); // DISPATCHES THE JOBS AND BLOCKS EXECUTION UNTIL FINISHED
     }
 
     void Application::Push(Layer* layer)
