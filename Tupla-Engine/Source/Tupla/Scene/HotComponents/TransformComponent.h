@@ -12,5 +12,6 @@ namespace Tupla
 		CU::Vector3f LocalPosition;
 		CU::Vector3f LocalRotationRad;
 		CU::Vector3f LocalScale;
+		bool isDirty;
 	};
 }

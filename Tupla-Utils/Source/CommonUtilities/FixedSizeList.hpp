@@ -83,7 +83,7 @@ namespace CommonUtilities
 		{
 			for (int i = 0; i < myCount; ++i)
 			{
-				myArray[i] = aVectorOnStack.myArray[i];
+				myArray[i] = aInitializerList[i];
 			}
 		}
 	}
@@ -151,7 +151,7 @@ namespace CommonUtilities
 		{
 			if (std::is_trivially_copyable_v<Type>) // TODO: Not sure this is the correct C++ whatever attribute to use here?
 			{
-				memmove(myArray + aIndex + 1, myArray + aIndex, sizeBytes);
+				memmove(myArray + aIndex + 1, myArray + aIndex, sizeof(Type));
 
 				myArray[aIndex] = aObject;
 				myCount += 1;
@@ -236,3 +236,5 @@ namespace CommonUtilities
 		return myArray;
 	}
 }
+
+namespace CU = CommonUtilities;

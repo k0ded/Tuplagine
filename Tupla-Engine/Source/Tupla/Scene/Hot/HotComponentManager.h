@@ -4,46 +4,32 @@
 
 namespace Tupla
 {
-	template<typename T>
-	struct THROWAWAY_STATIC_STORAGE
-	{
-		static inline ComponentType mIndex = -1;
-	};
-
 	class HotComponentManager
 	{
 	public:
 		template<typename T>
 		void RegisterComponent()
 		{
-			ASSERT(THROWAWAY_STATIC_STORAGE<T>::mIndex == (size_t)-1, "Registering component type more than once.");
+			//assert(RUNTIME_STATIC_STORAGE<T>::mIndex == (size_t)-1 && "Registering component type more than once.");
 
-			THROWAWAY_STATIC_STORAGE<T>::mIndex = mNextComponentType;
+			RUNTIME_STATIC_STORAGE<T>::mIndex = mNextComponentType;
 
-			mComponentArrays.insert({ THROWAWAY_STATIC_STORAGE<T>::mIndex, std::make_shared<HotComponentCollection<T>>() });
+			mComponentArrays.insert({ RUNTIME_STATIC_STORAGE<T>::mIndex, std::make_shared<HotComponentCollection<T>>() });
 			++mNextComponentType;
 		}
 
 		template<typename T>
 		ComponentType GetComponentType()
 		{
-			ASSERT(THROWAWAY_STATIC_STORAGE<T>::mIndex != (size_t)-1, "Component not registered before use.");
+			assert(RUNTIME_STATIC_STORAGE<T>::mIndex != (size_t)-1 && "Component not registered before use.");
 
-			return THROWAWAY_STATIC_STORAGE<T>::mIndex;
+			return RUNTIME_STATIC_STORAGE<T>::mIndex;
 		}
 
 		template<typename T>
 		void AddComponent(HOTEntity entity, T component)
 		{
-			// Add a component to the array for an entity
 			GetComponentArray<T>()->InsertData(entity, component);
-		}
-
-		template<typename T>
-		void RemoveComponent(HOTEntity entity)
-		{
-			// Remove a component from the array for an entity
-			GetComponentArray<T>()->RemoveData(entity);
 		}
 
 		template<typename T>
@@ -53,16 +39,17 @@ namespace Tupla
 			return GetComponentArray<T>()->GetData(entity);
 		}
 
-		void EntityDestroyed(HOTEntity entity) const
+		template<typename T>
+		std::array<T, MAX_ENTITIES>& GetAllComponents()
 		{
-			// Notify each component array that an entity has been destroyed
-			// If it has a component for that entity, it will remove it
-			for (auto const& pair : mComponentArrays)
-			{
-				auto const& component = pair.second;
+			// Get a reference to a component from the array for an entity
+			return GetComponentArray<T>()->GetCollection();
+		}
 
-				component->EntityDestroyed(entity);
-			}
+		template<typename T>
+		std::array<T, MAX_ENTITIES>& GetComponentArray(HOTEntity entity)
+		{
+			return GetComponentArray<T>()->GetCollection();
 		}
 
 	private:
@@ -73,9 +60,9 @@ namespace Tupla
 		template<typename T>
 		std::shared_ptr<HotComponentCollection<T>> GetComponentArray()
 		{
-			ASSERT(THROWAWAY_STATIC_STORAGE<T>::mIndex != (size_t)-1, "Component not registered before use.");
+			assert(RUNTIME_STATIC_STORAGE<T>::mIndex != (size_t)-1 && "Component not registered before use.");
 
-			return std::static_pointer_cast<HotComponentCollection<T>>(mComponentArrays[THROWAWAY_STATIC_STORAGE<T>::mIndex]);
+			return std::static_pointer_cast<HotComponentCollection<T>>(mComponentArrays[RUNTIME_STATIC_STORAGE<T>::mIndex]);
 		}
 	};
 }

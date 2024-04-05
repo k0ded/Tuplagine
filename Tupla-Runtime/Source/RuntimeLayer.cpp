@@ -4,6 +4,7 @@
 
 #include "Tupla/Core/Application.h"
 #include "../xcube.h"
+#include "Tupla/Scene/SceneManager.h"
 
 Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 {
@@ -45,6 +46,8 @@ Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 
 void Tupla::RuntimeLayer::OnUpdate()
 {
+	SceneManager::GetActiveScene().Update();
+
 	m_Transform = CU::Matrix4x4<float>::CreateRotation({ 0.0005f, 0.0009f, 0.0001f }) * m_Transform;
 	Constants consts{};
 	consts.Transform = m_Transform;
