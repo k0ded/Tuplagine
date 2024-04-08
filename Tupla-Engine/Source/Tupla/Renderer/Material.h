@@ -32,9 +32,9 @@ namespace Tupla
     public:
         virtual ~Material() = default;
 
-        virtual void SetShaderStage(Ref<Shader> shader) = 0;
+        virtual void SetShader(Ref<Shader> shader) = 0;
         virtual void AttachImage(Ref<Texture> texture) = 0;
-        virtual void AttachBuffer(Ref<Buffer> buffer, ShaderStage stage) = 0;
+        virtual void AttachBuffer(Ref<Buffer> buffer, ShaderStageSlot stage) = 0;
         virtual void BindMaterial() const = 0;
     };
 }

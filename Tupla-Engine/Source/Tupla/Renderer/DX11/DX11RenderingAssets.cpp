@@ -14,10 +14,10 @@ Tupla::Scope<Tupla::Material> Tupla::DX11RenderingAssets::CreateMaterial()
 	return CreateScope<Tupla::DX11Material>(renderer);
 }
 
-Tupla::Scope<Tupla::Shader> Tupla::DX11RenderingAssets::CreateShader(const std::wstring& virtualPath, ShaderStage stage)
+Tupla::Scope<Tupla::Shader> Tupla::DX11RenderingAssets::CreateShader()
 {
 	auto renderer = (DX11Renderer*)Application::Get().GetRenderer();
-	return CreateScope<Tupla::DX11Shader>(renderer, virtualPath, stage);
+	return CreateScope<Tupla::DX11Shader>(renderer);;
 }
 
 Tupla::Scope<Tupla::Texture> Tupla::DX11RenderingAssets::CreateTexture()

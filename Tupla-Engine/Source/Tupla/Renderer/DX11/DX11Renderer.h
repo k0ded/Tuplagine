@@ -3,6 +3,7 @@
 #include <dxgi.h>
 
 #include "WindowsWindow.h"
+#include "CommonUtilities/Time/StopWatch.h"
 #include "Primitives/DX11RenderTexture.h"
 #include "Tupla/Renderer/Material.h"
 #include "Tupla/Renderer/Renderer.h"
@@ -23,8 +24,8 @@ namespace Tupla
 		
 		Window* GetWindow() override { return m_Window.get(); }
 
-		ID3D11Device* GetDevice() const { return m_Device; }
-		ID3D11DeviceContext* GetDeviceContext() const { return m_Context; }
+		ID3D11Device* GetDevice() const { return m_Device.Get(); }
+		ID3D11DeviceContext* GetDeviceContext() const { return m_Context.Get(); }
 
 		void RenderMesh(Ref<Mesh> mesh, Ref<Material> material) override;
 
@@ -43,24 +44,24 @@ namespace Tupla
 
 		Scope<WindowsWindow> m_Window;
 
-		IDXGISwapChain* m_SwapChain;
-		ID3D11Device* m_Device;
-		ID3D11DeviceContext* m_Context;
+		Microsoft::WRL::ComPtr<IDXGISwapChain> m_SwapChain;
+		Microsoft::WRL::ComPtr<ID3D11Device> m_Device;
+		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_Context;
 
-		ID3D11Texture2D* m_FrameBuffer;
-		ID3D11RenderTargetView* m_FrameBufferRTV;
-		ID3D11Texture2D* m_DepthBuffer;
-		ID3D11DepthStencilView* m_DepthBufferDSV;
+		Scope<DX11RenderTexture> m_SwapChainRenderTexture;
 
 		// Defaults
-		ID3D11RasterizerState* m_RasterizerState;
-		ID3D11SamplerState* m_SamplerState;
-		ID3D11DepthStencilState* m_DepthStencilState;
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterizerState;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SamplerState;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilState;
 		D3D11_VIEWPORT m_DXViewport;
 
 		Scope<DX11RenderTexture> m_ViewportTexture;
 
 		CU::Vector2ui m_ViewportSize;
 		CU::Vector2ui m_RenderingSize;
+
+		CommonUtilities::StopWatch m_FrameWatch{};
+		std::vector<float> m_PrevTimes{};
 	};
 }

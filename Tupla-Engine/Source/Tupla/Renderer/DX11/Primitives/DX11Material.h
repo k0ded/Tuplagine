@@ -1,5 +1,6 @@
 #pragma once
 #include <d3d11.h>
+#include <wrl/client.h>
 
 #include "CommonUtilities/Math/Matrices/Matrix4x4.hpp"
 #include "Tupla/Renderer/Material.h"
@@ -16,16 +17,17 @@ namespace Tupla
 	public:
 		DX11Material(DX11Renderer* renderer);
 
-		void SetShaderStage(Ref<Shader> shader) override;
+		void SetShader(Ref<Shader> shader) override;
 		void AttachImage(Ref<Texture> texture) override;
-		void AttachBuffer(Ref<Buffer> buffer, ShaderStage stage) override;
+		void AttachBuffer(Ref<Buffer> buffer, ShaderStageSlot stage) override;
 		void BindMaterial() const override;
 
 	private:
 		DX11Renderer* m_Renderer;
 
-		std::array<std::vector<ID3D11Buffer*>, static_cast<u64>(ShaderStage::Count)> m_Buffers;
+		std::array<std::vector<Microsoft::WRL::ComPtr<ID3D11Buffer>>, (u64)ShaderStageSlot::Count> m_BuffersCOM;
+		std::array<std::vector<ID3D11Buffer*>, (u64)ShaderStageSlot::Count> m_Buffers; // MANAGED BY ComPtr above!
 		std::vector<Ref<Texture>> m_AttachedTextures;
-		std::array<Ref<Shader>, static_cast<size_t>(ShaderStage::Count)> m_Shaders;
+		std::array<Ref<Shader>, (u64)ShaderStageSlot::Count> m_Shaders;
 	};
 }

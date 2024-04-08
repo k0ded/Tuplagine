@@ -9,7 +9,7 @@ namespace Tupla
 		DX11RenderTexture(DX11Renderer* renderer, u32 width, u32 height, bool usesDepth = false);
 		~DX11RenderTexture() override;
 
-		void SetImageData(void* imageData, u32 texWidth, u32 texHeight) override {}
+		bool SetImageData(void* imageData, u32 texWidth, u32 texHeight) override { return false; }
 
 		void Clear(const CU::Vector4f& clearColor) const;
 
@@ -19,9 +19,9 @@ namespace Tupla
 		// NOTE: This does not copy the texture, it merely makes a reference to it.
 		Scope<DX11Texture> LinkedTexture();
 
-		ID3D11RenderTargetView* m_TextureRTV {};
-		ID3D11Texture2D* m_DepthTexture {};
-		ID3D11DepthStencilView* m_DepthDSV {};
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_TextureRTV {};
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_DepthTexture {};
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthDSV {};
 		D3D11_VIEWPORT m_Viewport {};
 		bool m_UsesDepth;
 	};

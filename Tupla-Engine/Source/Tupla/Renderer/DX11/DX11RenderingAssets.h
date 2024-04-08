@@ -7,7 +7,7 @@ namespace Tupla
 	{
 	public:
 		Scope<Material> CreateMaterial() override;
-		Scope<Shader> CreateShader(const std::wstring& virtualPath, ShaderStage stage) override;
+		Scope<Shader> CreateShader() override;
 		Scope<Texture> CreateTexture() override;
 		Scope<Mesh> CreateMesh() override;
 		Scope<Buffer> CreateBuffer(u32 byteSize) override;

@@ -30,21 +30,19 @@ Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 	m_Mesh->CreateMesh(vec, indexdata);
 	m_Material = Application::Get().GetRenderer()->GetRenderingAssets()->CreateMaterial();
 
-	Ref<Shader> vert = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader(L"./gpu.hlsl", ShaderStage::Vertex);
-	Ref<Shader> ps = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader(L"./gpu.hlsl", ShaderStage::Pixel);
+	Ref<Shader> shader = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader();
+	shader->CompileShader(L"./gpu.hlsl", ShaderStage::Vertex);
+	shader->CompileShader(L"./gpu.hlsl", ShaderStage::Pixel);
 
 	m_ConstantBuffer = Application::Get().GetRenderer()->GetRenderingAssets()->CreateBuffer(sizeof(Constants));
 	m_CameraBuffer = Application::Get().GetRenderer()->GetRenderingAssets()->CreateBuffer(sizeof(CameraData));
 
-
-
 	m_Texture = Application::Get().GetRenderer()->GetRenderingAssets()->CreateTexture();
 	m_Texture->SetImageData(texturedata, 2, 2);
-	m_Material->SetShaderStage(vert);
-	m_Material->SetShaderStage(ps);
+	m_Material->SetShader(shader);
 	m_Material->AttachImage(m_Texture);
-	m_Material->AttachBuffer(m_ConstantBuffer, ShaderStage::Vertex); // SLOT 0
-	m_Material->AttachBuffer(m_CameraBuffer, ShaderStage::Vertex);   // SLOT 1
+	m_Material->AttachBuffer(m_ConstantBuffer, ShaderStageSlot::Vertex); // SLOT 0
+	m_Material->AttachBuffer(m_CameraBuffer, ShaderStageSlot::Vertex);   // SLOT 1
 
 
 	CameraData data{};

@@ -46,7 +46,7 @@ namespace Tupla
 
         m_ViewportTexture = std::make_unique<DX11RenderTexture>(this, 128u, 128u, true);
         ImGui_ImplWin32_Init(m_Window->GetWindowHandle());
-        ImGui_ImplDX11_Init(m_Device, m_Context);
+        ImGui_ImplDX11_Init(m_Device.Get(), m_Context.Get());
         return true;
 	}
 
@@ -59,6 +59,24 @@ namespace Tupla
 
 	void DX11Renderer::BeginFrame()
 	{
+        m_FrameWatch.Update();
+        m_PrevTimes.push_back(m_FrameWatch.GetDeltaTime());
+
+        if(m_PrevTimes.size() > 10)
+        {
+            m_PrevTimes.erase(m_PrevTimes.begin());
+        }
+
+        float stabilized = 0.0f;
+
+        for (const float prevTime : m_PrevTimes)
+        {
+            stabilized += prevTime;
+        }
+
+        stabilized /= m_PrevTimes.size();
+
+        m_Window->SetTitle(L"FPS: " + std::to_wstring(1.f / stabilized));
         m_Window->PollEvents();
 
         // Recreate viewport texture to match the viewport size
@@ -91,18 +109,18 @@ namespace Tupla
         }
 
         FLOAT clearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-        m_Context->ClearRenderTargetView(m_FrameBufferRTV, clearColor);
-        m_Context->ClearDepthStencilView(m_DepthBufferDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+        m_Context->ClearRenderTargetView(m_SwapChainRenderTexture->m_TextureRTV.Get(), clearColor);
+        m_Context->ClearDepthStencilView(m_SwapChainRenderTexture->m_DepthDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
         m_ViewportTexture->Clear({ 0.0555f, 0.1882f, 0.3882f, 1 });
 
         m_Context->RSSetViewports(1, &m_DXViewport);
-        m_Context->RSSetState(m_RasterizerState);
+        m_Context->RSSetState(m_RasterizerState.Get());
 
-        m_Context->PSSetSamplers(0, 1, &m_SamplerState); // Set default sampler
+        m_Context->PSSetSamplers(0, 1, m_SamplerState.GetAddressOf()); // Set default sampler
 
         SetRenderTexture(m_ViewportTexture.get());
-        m_Context->OMSetDepthStencilState(m_DepthStencilState, 0);
+        m_Context->OMSetDepthStencilState(m_DepthStencilState.Get(), 0);
         m_Context->OMSetBlendState(nullptr, nullptr, 0xffffffff); // use default blend mode (i.e. no blending)
 
         ImGui_ImplDX11_NewFrame();
@@ -112,7 +130,7 @@ namespace Tupla
 
 	void DX11Renderer::EndFrame()
 	{
-        m_Context->OMSetRenderTargets(1, &m_FrameBufferRTV, m_DepthBufferDSV);
+        m_Context->OMSetRenderTargets(1, m_SwapChainRenderTexture->m_TextureRTV.GetAddressOf(), m_SwapChainRenderTexture->m_DepthDSV.Get());
         ImGuiIO& io = ImGui::GetIO();
         // Rendering
         ImGui::Render();
@@ -146,12 +164,12 @@ namespace Tupla
 	{
         if(renderTexture)
         {
-            m_Context->OMSetRenderTargets(1, &renderTexture->m_TextureRTV, renderTexture->m_DepthDSV);
+            m_Context->OMSetRenderTargets(1, renderTexture->m_TextureRTV.GetAddressOf(), renderTexture->m_DepthDSV.Get());
             m_Context->RSSetViewports(1, &renderTexture->m_Viewport);
         }
         else
         {
-            m_Context->OMSetRenderTargets(1, &m_FrameBufferRTV, m_DepthBufferDSV);
+            m_Context->OMSetRenderTargets(1, m_SwapChainRenderTexture->m_TextureRTV.GetAddressOf(), m_SwapChainRenderTexture->m_DepthDSV.Get());
 
             D3D11_VIEWPORT vp = {
             	0.f, 0.f,
@@ -201,16 +219,13 @@ namespace Tupla
         m_SwapChain->GetDesc(&swapchainDesc);
 
         m_RenderingSize = { swapchainDesc.BufferDesc.Width, swapchainDesc.BufferDesc.Height };
+        m_SwapChainRenderTexture = CreateScope<DX11RenderTexture>(this, swapchainDesc.BufferDesc.Width, swapchainDesc.BufferDesc.Height, true);
         m_DXViewport = { 0.0f, 0.0f, (float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height, 0.0f, 1.0f };
 	}
 
 	void DX11Renderer::ResizeSwapChain()
 	{
-        m_FrameBuffer->Release();
-        m_FrameBufferRTV->Release();
-        m_DepthBuffer->Release();
-        m_DepthBufferDSV->Release();
-
+        m_SwapChainRenderTexture = {};
         DXGI_SWAP_CHAIN_DESC swapchainDesc;
         auto result = m_SwapChain->GetDesc(&swapchainDesc);
         ASSERT(SUCCEEDED(result), "Failed getting swapchain desc");
@@ -218,22 +233,27 @@ namespace Tupla
         result = m_SwapChain->ResizeBuffers(swapchainDesc.BufferCount, m_RenderingSize.x, m_RenderingSize.y, swapchainDesc.BufferDesc.Format, swapchainDesc.Flags);
         ASSERT(SUCCEEDED(result), "Failed to resize swapchain buffers");
 
+        m_SwapChainRenderTexture = CreateScope<DX11RenderTexture>(this, (float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height, true);
+		m_DXViewport = {
+			0.0f, 0.0f,
+			(float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height,
+			0.0f, 1.0f
+		};
+
 		CreateFrameBuffer();
         CreateDepthBuffer();
-
-        m_DXViewport = { 0.0f, 0.0f, (float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height, 0.0f, 1.0f };
 	}
 
 	void DX11Renderer::CreateFrameBuffer()
 	{
-        auto result = m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&m_FrameBuffer);
+        auto result = m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)m_SwapChainRenderTexture->m_Texture.GetAddressOf());
         ASSERT(SUCCEEDED(result), "Failed to get framebuffer from swapchain");
 
         D3D11_RENDER_TARGET_VIEW_DESC framebufferRTVdesc = {}; // needed for SRGB framebuffer when using FLIP model swap effect
         framebufferRTVdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
         framebufferRTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-        result = m_Device->CreateRenderTargetView(m_FrameBuffer, &framebufferRTVdesc, &m_FrameBufferRTV);
+        result = m_Device->CreateRenderTargetView(m_SwapChainRenderTexture->m_Texture.Get(), &framebufferRTVdesc, &m_SwapChainRenderTexture->m_TextureRTV);
         ASSERT(SUCCEEDED(result), "Failed to create RenderTargetView from framebuffer");
 	}
 
@@ -241,15 +261,15 @@ namespace Tupla
 	{
         D3D11_TEXTURE2D_DESC depthbufferdesc;
 
-		m_FrameBuffer->GetDesc(&depthbufferdesc);
+		m_SwapChainRenderTexture->m_Texture->GetDesc(&depthbufferdesc);
 
         depthbufferdesc.Format      = DXGI_FORMAT_D24_UNORM_S8_UINT;
         depthbufferdesc.BindFlags   = D3D11_BIND_DEPTH_STENCIL;
 
-        auto result = m_Device->CreateTexture2D(&depthbufferdesc, nullptr, &m_DepthBuffer);
+        auto result = m_Device->CreateTexture2D(&depthbufferdesc, nullptr, &m_SwapChainRenderTexture->m_DepthTexture);
         ASSERT(SUCCEEDED(result), "Failed to create depth texture");
 
-        result = m_Device->CreateDepthStencilView(m_DepthBuffer, nullptr, &m_DepthBufferDSV);
+        result = m_Device->CreateDepthStencilView(m_SwapChainRenderTexture->m_DepthTexture.Get(), nullptr, &m_SwapChainRenderTexture->m_DepthDSV);
         ASSERT(SUCCEEDED(result), "Failed to create depth stencil view");
 	}
 

@@ -1,5 +1,9 @@
 ﻿#pragma once
+#include <d3d11.h>
+#include <wrl.h>
 #include <CommonUtilities/Math/Vector/Vector.h>
+
+struct ID3D11InputLayout;
 
 namespace Tupla
 {
@@ -14,6 +18,14 @@ namespace Tupla
         {
             return Position == other.Position && Color == other.Color && Normal == other.Normal && UV == other.UV;
         }
+
+        constexpr static D3D11_INPUT_ELEMENT_DESC InputDescription[] =
+        {
+	        { "POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 position
+	        { "NOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 normal
+	        { "TEX", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float2 texcoord
+	        { "COL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 color
+        };
     };
     
     class Mesh

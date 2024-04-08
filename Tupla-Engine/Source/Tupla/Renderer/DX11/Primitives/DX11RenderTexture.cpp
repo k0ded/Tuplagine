@@ -22,7 +22,7 @@ Tupla::DX11RenderTexture::DX11RenderTexture(DX11Renderer* renderer, const u32 wi
 	auto result = m_Renderer->GetDevice()->CreateTexture2D(&textureDesc, nullptr, &m_Texture);
 	ASSERT(SUCCEEDED(result), "Failed to create texture!")
 
-	result = m_Renderer->GetDevice()->CreateShaderResourceView(m_Texture, nullptr, &m_TextureSRV);
+	result = m_Renderer->GetDevice()->CreateShaderResourceView(m_Texture.Get(), nullptr, &m_TextureSRV);
 	ASSERT(SUCCEEDED(result), "Failed to create shader resource view")
 
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc {};
@@ -31,7 +31,7 @@ Tupla::DX11RenderTexture::DX11RenderTexture(DX11Renderer* renderer, const u32 wi
 	renderTargetViewDesc.Texture2D.MipSlice = 0;
 
 	// Create the render target view.
-	result = m_Renderer->GetDevice()->CreateRenderTargetView(m_Texture, &renderTargetViewDesc, &m_TextureRTV);
+	result = m_Renderer->GetDevice()->CreateRenderTargetView(m_Texture.Get(), &renderTargetViewDesc, &m_TextureRTV);
 	ASSERT(SUCCEEDED(result), "Failed to create render target view")
 
 	if (!usesDepth) return;
@@ -42,38 +42,26 @@ Tupla::DX11RenderTexture::DX11RenderTexture(DX11Renderer* renderer, const u32 wi
 	result = m_Renderer->GetDevice()->CreateTexture2D(&textureDesc, nullptr, &m_DepthTexture);
 	ASSERT(SUCCEEDED(result), "Failed to create depth texture")
 
-	result = m_Renderer->GetDevice()->CreateDepthStencilView(m_DepthTexture, nullptr, &m_DepthDSV);
+	result = m_Renderer->GetDevice()->CreateDepthStencilView(m_DepthTexture.Get(), nullptr, &m_DepthDSV);
 	ASSERT(SUCCEEDED(result), "Failed to create depth stencil view")
 
 	m_Viewport = { 0.f, 0.f, static_cast<float>(m_Width), static_cast<float>(m_Height), 0.f, 1.f };
 }
 
-Tupla::DX11RenderTexture::~DX11RenderTexture()
-{
-	m_TextureRTV->Release();
-
-	if (m_UsesDepth)
-	{
-		m_DepthTexture->Release();
-		m_DepthDSV->Release();
-	}
-}
+Tupla::DX11RenderTexture::~DX11RenderTexture() = default;
 
 void Tupla::DX11RenderTexture::Clear(const CU::Vector4f& clearColor) const
 {
-	m_Renderer->GetDeviceContext()->ClearRenderTargetView(m_TextureRTV, (float*)&clearColor);
-	m_Renderer->GetDeviceContext()->ClearDepthStencilView(m_DepthDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	m_Renderer->GetDeviceContext()->ClearRenderTargetView(m_TextureRTV.Get(), (float*)&clearColor);
+	m_Renderer->GetDeviceContext()->ClearDepthStencilView(m_DepthDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 Tupla::Scope<Tupla::DX11Texture> Tupla::DX11RenderTexture::LinkedTexture()
 {
-	Tupla::Scope<DX11Texture> texture = Tupla::CreateScope<DX11Texture>(m_Renderer);
+	Scope<DX11Texture> texture = Tupla::CreateScope<DX11Texture>(m_Renderer);
 	texture->m_Width = m_Width;
 	texture->m_Height = m_Height;
 	texture->m_Texture = m_Texture;
-	texture->m_Texture->AddRef();
 	texture->m_TextureSRV = m_TextureSRV;
-	texture->m_TextureSRV->AddRef();
-
 	return texture;
 }

@@ -2,26 +2,37 @@
 
 namespace Tupla
 {
-	enum class ShaderStage
-	{
-		Vertex,
+
+    enum class ShaderStageSlot
+    {
+        Vertex,
+        Pixel,
         Hull,
         Domain,
-        Pixel,
         Compute,
-        Count,
-        None
+	    Count,
+    };
+
+	enum class ShaderStage
+	{
+        None,
+		Vertex  = 1 << 0,
+        Pixel   = 1 << 1,
+        Hull    = 1 << 2,
+        Domain  = 1 << 3,
+        Compute = 1 << 4,
 	};
 
     class Shader
     {
     public:
         virtual ~Shader() = default;
-        virtual void CompileShader() = 0;
+        virtual bool CompileShader(const std::wstring& path, ShaderStage stage, bool debug = true) = 0;
+        virtual bool CompileShader(void* data, size_t byteSize, ShaderStage stage) = 0;
 
-        ShaderStage GetStage() const { return m_Stage; }
+        int GetStages() const { return m_Stage; }
 
     protected:
-        ShaderStage m_Stage;
+        int m_Stage;
     };
 }

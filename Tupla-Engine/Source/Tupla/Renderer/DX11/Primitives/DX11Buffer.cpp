@@ -22,18 +22,15 @@ Tupla::DX11Buffer::DX11Buffer(DX11Renderer* renderer, u32 size): m_Renderer(rend
 #endif
 #endif
 
-	const auto result = renderer->GetDevice()->CreateBuffer(&desc, nullptr, (ID3D11Buffer**)&m_GPUMemory);
+	const auto result = renderer->GetDevice()->CreateBuffer(&desc, nullptr, &m_GPUMemory);
 	ASSERT(SUCCEEDED(result), "Failed to create constant buffer")
 }
 
-Tupla::DX11Buffer::~DX11Buffer()
-{
-	((ID3D11Buffer*)m_GPUMemory)->Release();
-}
+Tupla::DX11Buffer::~DX11Buffer() = default;
 
 bool Tupla::DX11Buffer::Map()
 {
-	const auto result = m_Renderer->GetDeviceContext()->Map((ID3D11Buffer*)m_GPUMemory, 0, D3D11_MAP_WRITE_DISCARD, 0, &m_MappedResource);
+	const auto result = m_Renderer->GetDeviceContext()->Map(m_GPUMemory.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &m_MappedResource);
 	m_MappedMemory = m_MappedResource.pData;
 
 	return SUCCEEDED(result);
@@ -41,7 +38,7 @@ bool Tupla::DX11Buffer::Map()
 
 void Tupla::DX11Buffer::Unmap()
 {
-	m_Renderer->GetDeviceContext()->Unmap((ID3D11Buffer*)m_GPUMemory, 0);
+	m_Renderer->GetDeviceContext()->Unmap(m_GPUMemory.Get(), 0);
 	m_MappedMemory = nullptr;
 }
 

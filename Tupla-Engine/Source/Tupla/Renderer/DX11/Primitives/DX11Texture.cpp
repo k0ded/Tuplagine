@@ -10,13 +10,9 @@ namespace Tupla
 		m_Renderer = renderer;
 	}
 
-	DX11Texture::~DX11Texture()
-	{
-		m_Texture->Release();
-		m_TextureSRV->Release();
-	}
+	DX11Texture::~DX11Texture() = default;
 
-	void DX11Texture::SetImageData(void* imageData, const u32 texWidth, const u32 texHeight)
+	bool DX11Texture::SetImageData(void* imageData, const u32 texWidth, const u32 texHeight)
 	{
 		m_Width = texWidth;
 		m_Height = texHeight;
@@ -36,10 +32,19 @@ namespace Tupla
 		textureSRD.SysMemPitch = texWidth * 4;
 
 		auto result = m_Renderer->GetDevice()->CreateTexture2D(&textureDesc, &textureSRD, &m_Texture);
-		ASSERT(SUCCEEDED(result), "Failed to create texture!")
+		if(FAILED(result))
+		{
+			LOG_ERROR("Failed to create texture!");
+			return false;
+		}
 
-		result = m_Renderer->GetDevice()->CreateShaderResourceView(m_Texture, nullptr, &m_TextureSRV);
-		ASSERT(SUCCEEDED(result), "Failed to create shader resource view")
+		result = m_Renderer->GetDevice()->CreateShaderResourceView(m_Texture.Get(), nullptr, &m_TextureSRV);
+		if (FAILED(result)) {
+			LOG_ERROR("Failed to create shader resource view");
+			return false;
+		}
+
+		return true;
 	}
 
 	// Done this way for serialization reasons. Skips multiple allocations
@@ -61,7 +66,7 @@ namespace Tupla
 		textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 
 		m_Renderer->GetDevice()->CreateTexture2D(&textureDesc, nullptr, &staging);
-		m_Renderer->GetDeviceContext()->CopyResource(staging, m_Texture);
+		m_Renderer->GetDeviceContext()->CopyResource(staging, m_Texture.Get());
 
 		memcpy(&data[0], &m_Width, sizeof(u16));
 		memcpy(&data[2], &m_Height, sizeof(u16));

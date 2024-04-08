@@ -24,90 +24,105 @@ namespace Tupla
 		{ShaderStage::Domain, "ds_5_0"}
 	};
 
-	DX11Shader::DX11Shader(DX11Renderer* renderer, const std::wstring& path, const ShaderStage stage)
+	DX11Shader::DX11Shader(DX11Renderer* renderer)
 	{
 		m_Renderer = renderer;
-		m_ShaderPath = path;
-		m_Stage = stage;
-		DX11Shader::CompileShader();
 	}
 
-	DX11Shader::~DX11Shader()
+	DX11Shader::~DX11Shader() = default;
+
+	bool DX11Shader::CompileShader(const std::wstring& path, const ShaderStage stage, bool debug)
 	{
-		switch (m_Stage)
+		if (stage == ShaderStage::None)
 		{
-		case ShaderStage::Vertex:
-			m_VertexShader->Release();
-			break;
-		case ShaderStage::Hull:
-			m_HullShader->Release();
-			break;
-		case ShaderStage::Domain:
-			m_DomainShader->Release();
-			break;
-		case ShaderStage::Pixel:
-			m_PixelShader->Release();
-			break;
-		case ShaderStage::Compute:
-			m_ComputeShader->Release();
-			break;
+			LOG_ERROR("Cannot compile a shader that doesnt have a stage!");
+			return false;
 		}
-	}
-
-	void DX11Shader::CompileShader()
-	{
-		ASSERT(m_Stage != ShaderStage::None, "Cannot compile a shader that doesnt have a stage!");
 
 		ID3DBlob* cso;
-		auto result = D3DCompileFromFile(
-			m_ShaderPath.c_str(), 
-			nullptr, nullptr, 
-			entryPointNames[m_Stage].c_str(), 
-			targets[m_Stage].c_str(),
-			0, 0, 
-			&cso, 
-			nullptr
+		ID3DBlob* errors;
+
+#ifdef DEBUG
+		auto flags = debug ? D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION : D3DCOMPILE_OPTIMIZATION_LEVEL1;
+#else
+		auto flags = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif
+
+		const auto result = D3DCompileFromFile(
+			path.c_str(),
+			nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			entryPointNames[stage].c_str(),
+			targets[stage].c_str(),
+			flags, 0,
+			&cso,
+			&errors
 		);
 
-		ASSERT(SUCCEEDED(result), "Failed to compile shader");
+		if (FAILED(result))
+		{
 
-		switch (m_Stage)
+			std::string errorStr;
+			errorStr.reserve(errors->GetBufferSize());
+
+			for (size_t i = 0; i < errors->GetBufferSize(); ++i)
+			{
+				errorStr.push_back(*(static_cast<char*>(errors->GetBufferPointer()) + i));
+			}
+
+			LOG_ERROR("Failed to compile shader: {}", errorStr);
+
+			return false;
+		}
+
+		return CompileShader(cso->GetBufferPointer(), cso->GetBufferSize(), stage);
+	}
+
+	bool DX11Shader::CompileShader(void* data, size_t dataSize, ShaderStage stage)
+	{
+		HRESULT result;
+		switch (stage)
 		{
 		case ShaderStage::Vertex:
-			result = m_Renderer->GetDevice()->CreateVertexShader(cso->GetBufferPointer(), cso->GetBufferSize(), nullptr, &m_VertexShader);
-			ASSERT(SUCCEEDED(result), "Failed to create shader from compiled source");
+			result = m_Renderer->GetDevice()->CreateVertexShader(data, dataSize, nullptr, &m_VertexShader);
+
+			if (FAILED(result)) break;
+
+			result = m_Renderer->GetDevice()->CreateInputLayout(
+				Vertex::InputDescription,
+				ARRAYSIZE(Vertex::InputDescription),
+				data,
+				dataSize,
+				&m_InputLayout
+			);
+
+			if (FAILED(result))
 			{
-				D3D11_INPUT_ELEMENT_DESC ieDesc[] =
-				{
-					{ "POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 position
-					{ "NOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 normal
-					{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float2 texcoord
-					{ "COL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 color
-				};
-
-
-				result = m_Renderer->GetDevice()->CreateInputLayout(ieDesc, ARRAYSIZE(ieDesc), cso->GetBufferPointer(), cso->GetBufferSize(), &m_InputLayout);
-
-				ASSERT(SUCCEEDED(result), "Failed to create input layout for vertex shader");
+				LOG_ERROR("Failed to bind input layout!");
+				return false;
 			}
-			
 			break;
 		case ShaderStage::Hull:
-			result = m_Renderer->GetDevice()->CreateHullShader(cso->GetBufferPointer(), cso->GetBufferSize(), nullptr, &m_HullShader);
-			ASSERT(SUCCEEDED(result), "Failed to create shader from compiled source")
+			result = m_Renderer->GetDevice()->CreateHullShader(data, dataSize, nullptr, &m_HullShader);
 			break;
 		case ShaderStage::Domain:
-			result = m_Renderer->GetDevice()->CreateDomainShader(cso->GetBufferPointer(), cso->GetBufferSize(), nullptr, &m_DomainShader);
-			ASSERT(SUCCEEDED(result), "Failed to create shader from compiled source")
+			result = m_Renderer->GetDevice()->CreateDomainShader(data, dataSize, nullptr, &m_DomainShader);
 			break;
 		case ShaderStage::Pixel:
-			result = m_Renderer->GetDevice()->CreatePixelShader(cso->GetBufferPointer(), cso->GetBufferSize(), nullptr, &m_PixelShader);
-			ASSERT(SUCCEEDED(result), "Failed to create shader from compiled source")
+			result = m_Renderer->GetDevice()->CreatePixelShader(data, dataSize, nullptr, &m_PixelShader);
 			break;
 		case ShaderStage::Compute:
-			result = m_Renderer->GetDevice()->CreateComputeShader(cso->GetBufferPointer(), cso->GetBufferSize(), nullptr, &m_ComputeShader);
-			ASSERT(SUCCEEDED(result), "Failed to create shader from compiled source")
+			result = m_Renderer->GetDevice()->CreateComputeShader(data, dataSize, nullptr, &m_ComputeShader);
 			break;
 		}
+
+		m_Stage |= static_cast<int>(stage);
+
+		if (FAILED(result))
+		{
+			LOG_ERROR("Failed to create shader from compiled source");
+			return false;
+		}
+
+		return true;
 	}
 }
