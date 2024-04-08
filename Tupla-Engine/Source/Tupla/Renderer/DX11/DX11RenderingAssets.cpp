@@ -11,13 +11,17 @@
 Tupla::Scope<Tupla::Material> Tupla::DX11RenderingAssets::CreateMaterial()
 {
 	auto renderer = (DX11Renderer*)Application::Get().GetRenderer();
-	return CreateScope<Tupla::DX11Material>(renderer);
+	auto material = CreateScope<Tupla::DX11Material>(renderer);
+
+	material->AttachBuffer(CreateBuffer(sizeof(PerObject)), ShaderStageSlot::Vertex);  // SLOT 1
+
+	return material;
 }
 
 Tupla::Scope<Tupla::Shader> Tupla::DX11RenderingAssets::CreateShader()
 {
 	auto renderer = (DX11Renderer*)Application::Get().GetRenderer();
-	return CreateScope<Tupla::DX11Shader>(renderer);;
+	return CreateScope<Tupla::DX11Shader>(renderer);
 }
 
 Tupla::Scope<Tupla::Texture> Tupla::DX11RenderingAssets::CreateTexture()

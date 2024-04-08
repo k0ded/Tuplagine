@@ -9,7 +9,7 @@
 
 namespace Tupla
 {
-    struct Constants
+    struct PerObject
     {
         CU::Matrix4x4<float> Transform;
         CU::Vector3f LightVector;
@@ -35,6 +35,7 @@ namespace Tupla
         virtual void SetShader(Ref<Shader> shader) = 0;
         virtual void AttachImage(Ref<Texture> texture) = 0;
         virtual void AttachBuffer(Ref<Buffer> buffer, ShaderStageSlot stage) = 0;
-        virtual void BindMaterial() const = 0;
+        virtual Ref<Buffer> GetBuffer(size_t slot, ShaderStageSlot stage) = 0;
+        virtual bool BindMaterial() const = 0;
     };
 }

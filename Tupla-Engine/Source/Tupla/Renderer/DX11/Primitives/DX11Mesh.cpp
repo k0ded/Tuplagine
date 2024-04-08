@@ -42,9 +42,10 @@ void Tupla::DX11Mesh::CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>
     ASSERT(SUCCEEDED(result), "Failed to create index buffer");
 }
 
-void Tupla::DX11Mesh::AttachMesh()
+bool Tupla::DX11Mesh::AttachMesh()
 {
     m_Renderer->GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     m_Renderer->GetDeviceContext()->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
     m_Renderer->GetDeviceContext()->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+    return true;
 }

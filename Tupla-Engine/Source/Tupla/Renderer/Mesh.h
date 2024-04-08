@@ -34,7 +34,7 @@ namespace Tupla
         virtual ~Mesh() = default;
 
         virtual void CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>& indices) = 0;
-        virtual void AttachMesh() = 0;
+        virtual bool AttachMesh() = 0;
 
         [[nodiscard]] u32 GetVertexCount() const { return m_VertexCount; }
         [[nodiscard]] u32 GetIndexCount() const { return m_IndexCount; }

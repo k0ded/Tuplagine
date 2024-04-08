@@ -55,12 +55,22 @@ namespace Tupla
 
 	void DX11Material::AttachBuffer(Ref<Buffer> buffer, ShaderStageSlot stage)
 	{
-		m_BuffersCOM[static_cast<u64>(stage)].push_back(buffer->GetGPUMemory());
+		m_BuffersCOM[static_cast<u64>(stage)].push_back(buffer);
 		m_Buffers[static_cast<u64>(stage)].push_back(buffer->GetGPUMemory().Get());
 	}
 
-	void DX11Material::BindMaterial() const
+	Ref<Buffer> DX11Material::GetBuffer(const size_t slot, ShaderStageSlot stage)
 	{
+		return m_BuffersCOM[static_cast<u64>(stage)][slot];
+	}
+
+	bool DX11Material::BindMaterial() const
+	{
+		if(m_Shaders[(u64)ShaderStageSlot::Vertex] == nullptr || m_Shaders[(u64)ShaderStageSlot::Pixel] == nullptr)
+		{
+			return false;
+		}
+
 		const auto d11vs = std::static_pointer_cast<DX11Shader>(m_Shaders[static_cast<u64>(ShaderStageSlot::Vertex)]);
 		ComPtr<ID3D11VertexShader> vs = d11vs->GetShader<ID3D11VertexShader>();
 		ComPtr<ID3D11PixelShader> ps = std::static_pointer_cast<DX11Shader>(m_Shaders[static_cast<u64>(ShaderStageSlot::Pixel)])->GetShader<ID3D11PixelShader>();
@@ -92,5 +102,7 @@ namespace Tupla
 
 		dcontext->PSSetShaderResources(0, static_cast<u32>(views.size()), views.data());
 		// TODO: Sampler support?
+
+		return true;
 	}
 }
