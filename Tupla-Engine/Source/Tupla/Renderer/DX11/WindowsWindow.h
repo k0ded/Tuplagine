@@ -7,6 +7,7 @@ namespace Tupla
 	{
 	public:
 		WindowsWindow(const WindowProps& props);
+		~WindowsWindow();
 
 		bool GetMinimized() override;
 		void SetTitle(const std::wstring& newTitle) override;
@@ -18,6 +19,7 @@ namespace Tupla
 		friend LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	private:
 		static inline WindowsWindow* m_Instance;
+		static inline bool m_RegisteredClass = false;
 		bool m_ShouldClose = false;
 
 		std::vector<std::function<bool(UINT, WPARAM, LPARAM)>> m_AttachedEvents;

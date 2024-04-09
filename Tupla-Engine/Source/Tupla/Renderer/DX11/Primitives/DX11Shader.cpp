@@ -60,6 +60,11 @@ namespace Tupla
 
 		if (FAILED(result))
 		{
+			if(!errors)
+			{
+				LOG_ERROR("Couldn't find shader!");
+				return false;
+			}
 
 			std::string errorStr;
 			errorStr.reserve(errors->GetBufferSize());

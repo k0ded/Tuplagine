@@ -1,6 +1,8 @@
 #include "tgpch.h"
 #include "WindowsWindow.h"
 
+#include "Tupla/Core/Application.h"
+
 #define WND_CLASS_NAME L"MainWindowClass"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -14,7 +16,7 @@ namespace Tupla
 		LPARAM lParam
 	)
 	{
-		if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+		if (!Tupla::Application::m_Restarting && ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
 			return true;
 
 		switch (uMsg)
@@ -35,8 +37,14 @@ namespace Tupla
 	{
 		m_Instance = this;
 		m_Props.Title = props.Title;
-		WNDCLASS wndclass = { 0, MainWndProc, 0, 0, 0, 0, 0, 0, 0, WND_CLASS_NAME };
-		ASSERT(RegisterClass(&wndclass), "Failed to register WNDCLASS");
+
+		if(!m_RegisteredClass)
+		{
+			WNDCLASS wndclass = { 0, MainWndProc, 0, 0, 0, 0, 0, 0, 0, WND_CLASS_NAME };
+			ASSERT(RegisterClass(&wndclass), "Failed to register WNDCLASS");
+			m_RegisteredClass = true;
+		}
+			
 
 		m_Handle = CreateWindowEx(
 			0, WND_CLASS_NAME, 
@@ -46,6 +54,11 @@ namespace Tupla
 			nullptr, nullptr, nullptr, nullptr);
 
 		ASSERT(m_Handle != nullptr, GetLastError());
+	}
+
+	WindowsWindow::~WindowsWindow()
+	{
+		DestroyWindow((HWND)m_Handle);
 	}
 
 	bool WindowsWindow::GetMinimized()

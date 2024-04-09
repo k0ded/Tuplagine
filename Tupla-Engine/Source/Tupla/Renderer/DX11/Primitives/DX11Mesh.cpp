@@ -31,6 +31,8 @@ void Tupla::DX11Mesh::CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>
     auto result = m_Renderer->GetDevice()->CreateBuffer(&vertexbufferdesc, &vertexbufferSRD, &m_VertexBuffer);
     ASSERT(SUCCEEDED(result), "Failed to create vertex buffer");
 
+    if (indices.empty()) return;
+
     D3D11_BUFFER_DESC indexbufferdesc = {};
     indexbufferdesc.ByteWidth = static_cast<u32>(indices.size() * sizeof(u32));
     indexbufferdesc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -46,6 +48,10 @@ bool Tupla::DX11Mesh::AttachMesh()
 {
     m_Renderer->GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     m_Renderer->GetDeviceContext()->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
-    m_Renderer->GetDeviceContext()->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+    if(m_IndexCount > 0)
+    {
+        m_Renderer->GetDeviceContext()->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+    }
     return true;
 }

@@ -52,11 +52,11 @@ namespace Tupla
 	// WIDTH (2 byte)
 	// HEIGHT (2 byte)
 	// IMAGE DATA (WIDTH * HEIGHT * BPP bytes)
-	u64 DX11Texture::GetImageData(std::byte** outData)
+	void DX11Texture::GetImageData(std::vector<std::byte>& outData)
 	{
 		const u64 bytes = 4 + (u64)m_Width * m_Height * BytesPerPixel;
-		*outData = new std::byte[bytes];
-		std::byte* data = *outData;
+		outData.resize(bytes);
+		std::byte* data = outData.data();
 
 		ID3D11Texture2D* staging = nullptr;
 		D3D11_TEXTURE2D_DESC textureDesc{};
@@ -78,7 +78,5 @@ namespace Tupla
 		{
 			memcpy(&data[4], resource.pData, (u64)m_Width * m_Height * BytesPerPixel);
 		}
-
-		return bytes;
 	}
 }

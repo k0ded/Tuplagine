@@ -9,7 +9,8 @@ namespace Tupla
     void Texture2D::DeserializeAsset(const std::string& aFilePath)
     {
         int texWidth, texHeight, texChannels;
-        stbi_uc* pixels = stbi_load(aFilePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+        stbi_uc* pixels = stbi_load(Application::Get().GetAssetManager().GetAssetPath(aFilePath).c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
         if(!pixels)
         {
@@ -21,18 +22,21 @@ namespace Tupla
         stbi_image_free(pixels);
     }
 
-    u64 Texture2D::SerializeAsset(std::byte** outResult)
+    void Texture2D::SerializeAsset(std::vector<std::byte>& outResult)
     {
         if(m_Texture)
         {
-			return m_Texture->GetImageData(outResult);
+        	m_Texture->GetImageData(outResult);
         }
-        return 0;
     }
 
     void Texture2D::DeserializeAssetPacked(const std::byte* data, u64 dataSize)
     {
-        ASSERT(dataSize < 5, "INVALID PACKED TEXTURE FORMAT");
+        if(dataSize < 4)
+        {
+            LOG_ERROR("Failed deserializing texture! Data size was: {}", dataSize);
+            return;
+        }
 
         // For specification see DX11Texture.cpp
 
@@ -42,16 +46,21 @@ namespace Tupla
         memcpy(&width, &data[0], sizeof(u16));
         memcpy(&height, &data[2], sizeof(u16));
 
+        if(dataSize < width * height * 4 + 4)
+        {
+            LOG_ERROR("Failed deserializing texture! Data size was: {}", dataSize);
+            return;
+        }
+
     	// Image data after this block
         m_Texture->SetImageData((void*)&data[4], width, height);
     }
 
-    u64 Texture2D::SerializeAssetPacked(std::byte** outResult)
+    void Texture2D::SerializeAssetPacked(std::vector<std::byte>& outResult)
     {
         if(m_Texture)
         {
             return m_Texture->GetImageData(outResult);
         }
-        return 0;
     }
 }

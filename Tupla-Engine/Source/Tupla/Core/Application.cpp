@@ -19,7 +19,7 @@ namespace Tupla
         m_Renderer->StartWindow({ m_Specification.ApplicationName });
         m_Renderer->Init();
 
-        if(!m_Specification.WorkingDirectory.empty())
+        if (!m_Specification.WorkingDirectory.empty())
             std::filesystem::current_path(m_Specification.WorkingDirectory);
 
         // EXAMPLE OF HOW TO MAKE ASYNC JOBS!
@@ -33,6 +33,12 @@ namespace Tupla
         // m_JobManager.ScheduleJob(Job([this] { while (m_progress < 100.f) { std::cout << m_progress << '\n'; }}));
         // m_JobManager.BurstJobs(); // DISPATCHES THE JOBS AND CONTINUES EXECUTION
         // m_JobManager.Await(); // DISPATCHES THE JOBS AND BLOCKS EXECUTION UNTIL FINISHED
+    }
+
+    Application::~Application()
+    {
+        m_Renderer->Shutdown();
+        m_Renderer = nullptr;
     }
 
     void Application::Push(Layer* layer)
@@ -49,12 +55,12 @@ namespace Tupla
     {
         m_Running = false;
         m_Restarting = restarting;
-        m_Renderer->Shutdown();
     }
 
     void Application::Run()
     {
         m_Running = true;
+        m_Restarting = false;
         while (m_Running)
         {
             Time::Update();
@@ -76,7 +82,7 @@ namespace Tupla
             
             m_Renderer->EndFrame();
 
-            m_Running = !m_Renderer->GetWindow()->ShouldClose();
+            m_Running = !m_Renderer->GetWindow()->ShouldClose() && m_Running;
         }
     }
 }

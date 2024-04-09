@@ -1,8 +1,9 @@
 
 #include "File.h"
 
+#include <cassert>
 #include <fstream>
-#include <stdexcept>
+#include <filesystem>
 
 namespace CommonUtilities
 {
@@ -39,15 +40,99 @@ namespace CommonUtilities
 
 		return opened;
 	}
-	
-	bool ReadFileBinary(const char *aPath, std::vector<char>& aBuffer, unsigned int aOffset, unsigned int aLength)
+
+	bool WriteFileBinary(const char* aPath, const std::byte* aData, unsigned aLength, int aOffset)
+	{
+		CreateDirectoriesForPath(aPath);
+		std::ofstream file{ aPath, std::ios::out | std::ios::ate | std::ios::binary };
+
+		if (!file)
+		{
+			printf("Error opening file: %s!\n", aPath);
+			return false;
+		}
+
+		const size_t fileSize = static_cast<size_t>(file.tellp()); // Returns cursor position zero-indexed so we add 1 to get the actual size.
+
+		if(fileSize < aOffset)
+		{
+			printf("Trying to write on an offset outside of the file size!\n");
+			return false;
+		}
+
+		file.seekp(aOffset);
+		file.write((const char*)aData, aLength);
+		file.close();
+
+		return true;
+	}
+
+	void FindAll(const char* aPath, std::vector<std::string>& aPaths, PathType aPathType)
+	{
+		for (const auto& entry : std::filesystem::directory_iterator(aPath))
+		{
+			if(aPathType == PathType::File)
+			{
+				if (entry.is_regular_file())
+				{
+					aPaths.push_back(entry.path().string());
+				}
+			}
+			else if (aPathType == PathType::Directory)
+			{
+				if (entry.is_directory())
+				{
+					aPaths.push_back(entry.path().string());
+				}
+			}
+			else if(aPathType == PathType::Path)
+			{
+				aPaths.push_back(entry.path().string());
+			}
+
+			if (entry.is_directory())
+			{
+				FindAll(entry.path().string().c_str(), aPaths, aPathType);
+			}
+		}
+	}
+
+	bool CreateDirectoriesForPath(const char* aPath)
+	{
+		const auto file = std::filesystem::path(aPath);
+
+		if (!file.has_parent_path())
+			return true;
+
+		const std::filesystem::path tmp = file.parent_path();
+		return std::filesystem::create_directories(tmp);
+	}
+
+	bool CreateDirectories(const char* aPath)
+	{
+		return std::filesystem::create_directories(aPath);
+	}
+
+	bool FileExists(const char* aPath)
+	{
+		return std::filesystem::exists(aPath);
+	}
+
+	size_t GetFileTimeStamp(const char* aPath)
+	{
+		if (!std::filesystem::exists(aPath))
+			return 0;
+		return std::filesystem::last_write_time(aPath).time_since_epoch().count();
+	}
+
+	size_t ReadFileBinary(const char *aPath, std::vector<std::byte>& aData, unsigned int aLength, unsigned int aOffset)
 	{
 		std::ifstream file { aPath, std::ios::ate | std::ios::binary };
 
 		if(!file.is_open())
 		{
 			printf("Error opening file: %s!\n", aPath);
-			return false;
+			return 0;
 		}
 
 		const size_t fileSize = file.tellg();
@@ -61,15 +146,15 @@ namespace CommonUtilities
 			else 
 			{
 				printf("Offset and length is large than filesize!\n");
-				return false;
+				return 0;
 			}
 		}
-		
-		aBuffer.resize(aLength);
+
+		aData.resize(aLength);
 		file.seekg(aOffset);
-		file.read(aBuffer.data(), aLength);
+		file.read(reinterpret_cast<char*>(aData.data()), aLength);
 		file.close();
 
-		return true;
+		return aLength;
 	}
 }

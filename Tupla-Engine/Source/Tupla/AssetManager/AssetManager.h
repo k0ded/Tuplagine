@@ -1,10 +1,10 @@
 ﻿#pragma once
 #include <unordered_map>
-#include <Tupla/Core/Base.h>
 
 #include "Assets/Asset.h"
 #include "CommonUtilities/File.h"
 #include "Tupla/Utils/Hashing.h"
+#include "Tupla/Core/Log.h"
 
 namespace Tupla
 {
@@ -13,11 +13,14 @@ namespace Tupla
         u64 Offset;
         u64 Size;
         std::string PhysicalFilePath;
+        bool IsPacked = false;
     };
     
     class AssetManager
     {
     public:
+	    explicit AssetManager(std::string CacheLocation = "Cache");
+
         template <typename T> requires(std::is_base_of_v<Asset, T>)
         std::shared_ptr<T> GetAssetFromID(int aId) const
         {
@@ -25,28 +28,80 @@ namespace Tupla
         }
         
         template <typename T> requires(std::is_base_of_v<Asset, T>)
-        std::shared_ptr<T> GetAssetFromFile(const std::string& aFile) const
+        std::shared_ptr<T> GetAssetFromFile(const std::string& aFile)
         {
-            return GetOrLoadAsset<T>(HASH_STR(aFile.c_str()));
+            auto hash = HASH_RUNTIME_STR(aFile);
+
+            if (!m_VirtualToPhysicalMap.contains(hash))
+            {
+            	const auto cacheLocation = m_CacheLocation + "\\" + aFile;
+                if (CU::FileExists(cacheLocation.c_str()))
+                {
+                    m_VirtualToPhysicalMap[hash].PhysicalFilePath = cacheLocation;
+                    m_VirtualToPhysicalMap[hash].IsPacked = true;
+                }
+                else
+                {
+                    m_VirtualToPhysicalMap[hash].PhysicalFilePath = "Assets\\" + aFile;
+                }
+            }
+
+        	if (TryInvalidate(aFile))
+        	{
+        		LOG_INFO("Changes found in {}, Reimporting!", aFile.c_str());
+        	}
+
+            return GetOrLoadAsset<T>(hash);
         }
 
-        void InsertFilePath(const std::string& phyiscalFile, const std::string& virtualFile);
+        bool TryInvalidate(const std::string& aFile)
+        {
+	        const auto hash = HASH_RUNTIME_STR(aFile);
+            if (!m_VirtualToPhysicalMap.contains(hash)) return false;
 
-        void ReadBinaryFromFile(const std::string& virtualFile, std::vector<char>& buffer);
+            // For editor invalidation
+            if (m_VirtualToPhysicalMap[hash].IsPacked && !m_ReadPackedAssets)
+            {
+                const auto rawTS = CU::GetFileTimeStamp(aFile.c_str());
+                const auto packedTS = CU::GetFileTimeStamp(m_VirtualToPhysicalMap[hash].PhysicalFilePath.c_str());
+
+                if (packedTS < rawTS)
+                {
+                    // Invalidate!!!
+                    m_VirtualToPhysicalMap[hash].IsPacked = false;
+                    m_VirtualToPhysicalMap[hash].PhysicalFilePath = aFile;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        std::string GetAssetPath(const std::string& aString) const;
+        std::string GetCachePath(const std::string& aString) const;
+    	std::string GetRootPath(const std::string& aString) const;
+
+        bool LoadVirtualMap();
+        void SaveVirtualMap();
+        void BuildVirtualMap();
 
     private:
         template <typename T> requires(std::is_base_of_v<Asset, T>)
         std::shared_ptr<T> GetOrLoadAsset(const int aId)
         {
             // These are the most likely to hit so try them first!
-            if(m_PersistentAssetCache.contains(aId))
+            if (m_TemporaryAssetCache.contains(aId))
             {
-                return m_PersistentAssetCache[aId];
+                // We might not have gone through a collection pass yet!
+                if(!m_TemporaryAssetCache.at(aId).expired())
+                {
+                    return std::static_pointer_cast<T, Asset>(m_TemporaryAssetCache.at(aId).lock());
+                }
             }
 
-            if(m_TemporaryAssetCache.contains(aId))
+        	if(m_PersistentAssetCache.contains(aId))
             {
-                return m_PersistentAssetCache[aId];
+                return std::static_pointer_cast<T, Asset>(m_PersistentAssetCache.at(aId));
             }
 
             if(!m_VirtualToPhysicalMap.contains(aId))
@@ -54,40 +109,50 @@ namespace Tupla
                 throw std::exception("Accessing an asset that doesn't exist!");
             }
 
-            auto asset = std::make_shared<T>();
+            auto asset = std::make_shared<T>(aId);
 
-            if(!m_ReadPackedAssets)
+            if(!m_VirtualToPhysicalMap[aId].IsPacked && !m_ReadPackedAssets)
             {
                 asset->DeserializeAsset(m_VirtualToPhysicalMap[aId].PhysicalFilePath);
+                
+            	// Build cache for editor!
+            	std::vector<std::byte> data;
+            	asset->SerializeAssetPacked(data);
+
+                const auto cacheLocation = m_CacheLocation + "\\" + m_VirtualToPhysicalMap[aId].PhysicalFilePath.substr(strlen("Assets\\"));
+
+            	if (CU::WriteFileBinary(cacheLocation.c_str(), data.data(), data.size()))
+            	{
+            		m_VirtualToPhysicalMap[aId].PhysicalFilePath = cacheLocation;
+            		m_VirtualToPhysicalMap[aId].IsPacked = true;
+            	}
             }
-            else
+
+            if(m_VirtualToPhysicalMap[aId].IsPacked && !m_ReadPackedAssets)
             {
-                std::string str;
-                const auto& [Offset, Size, PhysicalFilePath] = m_VirtualToPhysicalMap[aId];
-                if(CU::ReadFile(PhysicalFilePath.c_str(), str, Offset, Size))
-                {
-                    m_TemporaryAssetCache[aId] = asset;
-                
-                    if(m_ReadPackedAssets)
-                    {
-                        asset->DeserializeAssetPacked(str);
-                    }
-                
-                    return asset;
-                }
+                const auto& [Offset, Size, PhysicalFilePath, isPacked] = m_VirtualToPhysicalMap[aId];
+
+                std::vector<std::byte> data;
+                auto size = CU::ReadFileBinary(PhysicalFilePath.c_str(), data, Size, Offset);
+
+            	m_TemporaryAssetCache[aId] = asset;
+            	asset->DeserializeAssetPacked(data.data(), size);
             }
-            
-            throw std::exception("Failed to load asset!");
+
+        	return asset;
         }
 
-        std::unordered_map<i32, std::weak_ptr<Asset>> m_TemporaryAssetCache{};
-        std::unordered_map<i32, std::shared_ptr<Asset>> m_PersistentAssetCache{};
-        std::unordered_map<i32, AssetEntry> m_VirtualToPhysicalMap{};
+        std::unordered_map<u32, std::weak_ptr<Asset>> m_TemporaryAssetCache{};
+        std::unordered_map<u32, std::shared_ptr<Asset>> m_PersistentAssetCache{};
+        std::unordered_map<u32, AssetEntry> m_VirtualToPhysicalMap{};
+        std::string m_CacheLocation;
+        std::string m_AbsoluteCacheLocation;
+        size_t m_Version;
         
 #ifdef DIST
-        bool m_ReadPackedAssets = true;
+        constexpr static bool m_ReadPackedAssets = true;
 #else
-        bool m_ReadPackedAssets = false;
+        constexpr static bool m_ReadPackedAssets = false;
 #endif
     };
 }

@@ -13,6 +13,11 @@ namespace JobSystem
         myThreadPool.Start();
     }
 
+    JobManager::~JobManager()
+    {
+        myThreadPool.Stop();
+    }
+
     /**
      * \brief Schedules a job and bursts them in memory access order. DOES NOT GUARANTEE THAT THE ORDER OF MEMORY ACCESS WILL BE THE SAME
      * \param aJob to schedule.

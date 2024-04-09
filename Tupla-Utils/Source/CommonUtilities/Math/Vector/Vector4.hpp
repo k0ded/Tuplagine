@@ -30,7 +30,6 @@ namespace CommonUtilities
 
             T data[4];
         };
-
         
         //Creates a null-vector
         Vector4() = default;
@@ -39,6 +38,9 @@ namespace CommonUtilities
         Vector4(const T aData[4]);
         //Copy constructor (compiler generated)
         Vector4(const Vector4& aVector);
+        template <class OtherVectorClass>
+        Vector4(const OtherVectorClass& aOther);
+
         //Destructor (compiler generated)
         ~Vector4();
         //Explicit Type operator, create a different vector with the same values.
@@ -91,7 +93,21 @@ namespace CommonUtilities
     }
 
     template <class T>
+    template <class OtherVectorClass>
+    Vector4<T>::Vector4(const OtherVectorClass& aOther) :
+        x{ T(aOther.x) }, y{ T(aOther.y) }, z{ T(aOther.z) }, w{ T(aOther.w) }
+    {
+    }
+
+    template <class T>
     Vector4<T>::~Vector4() = default;
+
+    template <class T>
+    template <class OtherVectorClass>
+    Vector4<T>::operator OtherVectorClass() const
+    {
+        return { x, y, z, w };
+    }
 
     template <class T>
     Vector4<T> Vector4<T>::operator-() const

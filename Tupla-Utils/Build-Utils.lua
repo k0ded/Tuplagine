@@ -6,7 +6,7 @@ project "Tupla-Utils"
    targetdir "Binaries/%{cfg.buildcfg}"
    staticruntime "off"
 
-   files { "Source/**.h", "Source/**.cpp", "Source/**.hpp" }
+   files { "Source/**.h", "Source/**.c", "Source/**.cpp", "Source/**.hpp" }
 
    targetdir ("../Binaries/" .. OutputDir .. "/%{prj.name}")
    objdir ("../Binaries/Intermediates/" .. OutputDir .. "/%{prj.name}")

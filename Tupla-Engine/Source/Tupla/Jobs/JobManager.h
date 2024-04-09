@@ -13,6 +13,7 @@ namespace JobSystem
     {
     public:
         JobManager();
+        ~JobManager();
 
         /**
          * \brief Schedules a job to be performed in parallel after the conditions are met.

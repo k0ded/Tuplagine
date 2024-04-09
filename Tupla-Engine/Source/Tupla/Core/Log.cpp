@@ -5,8 +5,11 @@
 #include <spdlog/sinks/basic_file_sink.h>
 
 std::shared_ptr<spdlog::logger> Logger::_logger;
+bool alreadyExists = false;
 
 void Logger::Init() {
+    if (alreadyExists) return;
+    alreadyExists = true;
     std::vector<spdlog::sink_ptr> sinks;
 
     sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());

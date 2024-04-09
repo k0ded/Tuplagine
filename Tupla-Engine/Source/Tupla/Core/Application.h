@@ -37,13 +37,13 @@ namespace Tupla
     {
     public:
         Application(ApplicationSpecification specification);
-        virtual ~Application() = default;
+        virtual ~Application();
 
         // Application takes ownership of layers that stay on until the applications end.
         void Push(Layer* layer);
         void PushOverlay(Layer* layer);
         
-        const ApplicationSpecification& GetSpecification() { return m_Specification; }
+    	ApplicationSpecification& GetSpecification() { return m_Specification; }
         void Shutdown(bool restarting = false);
 
         Renderer* GetRenderer() const { return m_Renderer.get(); }
@@ -51,17 +51,18 @@ namespace Tupla
         JobSystem::JobManager& GetJobManager() { return m_JobManager; }
 
         static Application& Get() { return *s_Application; }
+
+    	inline static bool m_Restarting = false;
     private:
         void Run();
 
-        Scope<Renderer> m_Renderer;
-        Scope<AssetManager> m_AssetManager;
+        Scope<Renderer> m_Renderer = nullptr;
+        Scope<AssetManager> m_AssetManager {};
         
         ApplicationSpecification m_Specification;
         JobSystem::JobManager m_JobManager;
         LayerStack m_LayerStack;
         bool m_Running;
-        bool m_Restarting;
 
         std::atomic<float> m_progress;
         

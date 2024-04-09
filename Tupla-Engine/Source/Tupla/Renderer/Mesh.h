@@ -12,7 +12,8 @@ namespace Tupla
         CU::Vector3f Position {};
         CU::Vector3f Normal{};
         CU::Vector2f UV{};
-        CU::Vector3f Color{};
+        CU::Vector4f Color{};
+        CU::Vector3f Tangent;
 
         bool operator==(const Vertex& other) const
         {
@@ -24,7 +25,8 @@ namespace Tupla
 	        { "POS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,                            0, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 position
 	        { "NOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 normal
 	        { "TEX", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float2 texcoord
-	        { "COL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 color
+	        { "COL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float4 color
+	        { "TAN", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, // float3 tangent
         };
     };
     
@@ -39,6 +41,12 @@ namespace Tupla
         [[nodiscard]] u32 GetVertexCount() const { return m_VertexCount; }
         [[nodiscard]] u32 GetIndexCount() const { return m_IndexCount; }
         [[nodiscard]] u32 GetTriCount() const { return m_IndexCount / 3; }
+
+        bool m_IsSkinned;
+        int m_SubMesh;
+        int m_LOD;
+        u32 m_MaterialId;
+
     protected:
         u32 m_VertexCount {};
         u32 m_IndexCount {};

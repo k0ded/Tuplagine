@@ -3,31 +3,15 @@
 #include <iostream>
 
 #include "Tupla/Core/Application.h"
-#include "../xcube.h"
+#include "Tupla/AssetManager/Assets/Model.h"
 #include "Tupla/Scene/SceneManager.h"
 
 Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 {
-	m_Mesh = Application::Get().GetRenderer()->GetRenderingAssets()->CreateMesh();
-
 	std::vector<Vertex> vec;
 
-	int cursor = 0;
-	while(cursor < sizeof(vertexdata) / sizeof(Vertex))
-	{
-		const int floatCursor = cursor * sizeof(Vertex) / sizeof(float);
-		vec.push_back(Tupla::Vertex{
-			{ vertexdata[floatCursor], vertexdata[floatCursor + 1], vertexdata[floatCursor + 2] },
-			{ vertexdata[floatCursor + 3], vertexdata[floatCursor + 4], vertexdata[floatCursor + 5] },
-			{ vertexdata[floatCursor + 6], vertexdata[floatCursor + 7] },
-
-			{ vertexdata[floatCursor + 8], vertexdata[floatCursor + 9], vertexdata[floatCursor + 10] }
-			}
-		);
-		cursor++;
-	}
-
-	m_Mesh->CreateMesh(vec, indexdata);
+	//m_Mesh = Application::Get().GetAssetManager().GetAssetFromFile<Model>("model.fbx")->m_Meshes[0];
+	m_Mesh = Application::Get().GetRenderer()->GetRenderingAssets()->CreateMesh();
 	m_Material = Application::Get().GetRenderer()->GetRenderingAssets()->CreateMaterial();
 
 	Ref<Shader> shader = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader();
@@ -38,7 +22,6 @@ Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 	m_CameraBuffer = Application::Get().GetRenderer()->GetRenderingAssets()->CreateBuffer(sizeof(CameraData));
 
 	m_Texture = Application::Get().GetRenderer()->GetRenderingAssets()->CreateTexture();
-	m_Texture->SetImageData(texturedata, 2, 2);
 	m_Material->SetShader(shader);
 	m_Material->AttachImage(m_Texture);
 	m_Material->AttachBuffer(m_CameraBuffer, ShaderStageSlot::Vertex);   // SLOT 1

@@ -12,10 +12,10 @@ namespace Tupla
         operator Ref<Texture>() { return m_Texture; }
 
         void DeserializeAsset(const std::string& aFilePath) override;
-        u64 SerializeAsset(std::byte** outResult) override;
+        void SerializeAsset(std::vector<std::byte>& outResult) override;
 
         void DeserializeAssetPacked(const std::byte* data, u64 dataSize) override;
-        u64 SerializeAssetPacked(std::byte** outResult) override;
+        void SerializeAssetPacked(std::vector<std::byte>& outResult) override;
 
     private:
         Ref<Texture> m_Texture;

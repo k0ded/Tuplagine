@@ -13,4 +13,5 @@ Binaries/
 *.sln
 *.log
 *.ini
+*.vmb
 Makefile

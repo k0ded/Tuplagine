@@ -16,12 +16,20 @@ int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int)
 int main(int argc, char** argv)
 {
 #endif
-    Tupla::CreateApplication({argc, argv});
+
 
     // Incase we need to swap window creating for another rendering pipeline?
     do
     {
+        if(Tupla::Application::s_Application)
+        {
+            argc = 2;
+            argv[1] = new char[Tupla::Application::Get().GetSpecification().WorkingDirectory.size() + 1];
+            memcpy(argv[1], Tupla::Application::Get().GetSpecification().WorkingDirectory.c_str(), Tupla::Application::Get().GetSpecification().WorkingDirectory.size() + 1);
+            delete Tupla::Application::s_Application;
+        }
+        Tupla::CreateApplication({ argc, argv });
         Tupla::Application::Get().Run();
     }
-    while (Tupla::Application::Get().m_Restarting);
+    while (Tupla::Application::m_Restarting);
 }

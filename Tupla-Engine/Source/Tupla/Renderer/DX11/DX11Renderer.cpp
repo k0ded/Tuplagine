@@ -55,6 +55,7 @@ namespace Tupla
         ImGui_ImplWin32_Shutdown();
         ImGui_ImplDX11_Shutdown();
         ImGui::Shutdown();
+        ImGui::DestroyContext();
 	}
 
 	void DX11Renderer::BeginFrame()
@@ -158,7 +159,14 @@ namespace Tupla
             return;
         }
 
-        m_Context->DrawIndexed(mesh->GetIndexCount(), 0, 0);
+        if(mesh->GetIndexCount() > 0)
+        {
+            m_Context->DrawIndexed(mesh->GetIndexCount(), 0, 0);
+        }
+        else
+        {
+            m_Context->Draw(mesh->GetVertexCount(), 0);
+        }
 	}
 
 	void* DX11Renderer::GetViewportImage(const CU::Vector2ui& viewportSize)
