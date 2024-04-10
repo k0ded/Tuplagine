@@ -105,4 +105,9 @@ namespace Tupla
 
 		return true;
 	}
+
+	u64 DX11Material::GetId() const
+	{
+		return m_Id;
+	}
 }

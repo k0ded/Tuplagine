@@ -37,5 +37,6 @@ namespace Tupla
         virtual void AttachBuffer(Ref<Buffer> buffer, ShaderStageSlot stage) = 0;
         virtual Ref<Buffer> GetBuffer(size_t slot, ShaderStageSlot stage) = 0;
         virtual bool BindMaterial() const = 0;
+        virtual u64 GetId() const = 0;
     };
 }

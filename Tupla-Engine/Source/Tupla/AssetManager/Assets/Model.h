@@ -10,7 +10,7 @@ namespace Tupla
 	class Model : public Asset
 	{
 	public:
-		Model(const u32 aId) : Asset(aId) {}
+		Model(const u64 aId) : Asset(aId) {}
 
 		void DeserializeAsset(const std::string& aFilePath) override;
 		void SerializeAsset(std::vector<std::byte>& outResult) override;
@@ -19,11 +19,9 @@ namespace Tupla
 		void SerializeAssetPacked(std::vector<std::byte>& outResult) override;
 
 		std::vector<Ref<Mesh>> m_Meshes {};
-		std::vector<Ref<Material>> m_Materials {};
-		std::vector<u32> m_MaterialIDs {};
 
 	private:
-		static inline std::unordered_map<int, IModelSerializer*> serializers =
+		static inline std::unordered_map<u64, IModelSerializer*> serializers =
 		{
 			{ HASH_STR(".fbx"), new FBXSerializer() }
 		};

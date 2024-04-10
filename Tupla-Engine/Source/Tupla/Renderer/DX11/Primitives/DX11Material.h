@@ -22,9 +22,11 @@ namespace Tupla
 		void AttachBuffer(Ref<Buffer> buffer, ShaderStageSlot stage) override;
 		Ref<Buffer> GetBuffer(size_t slot, ShaderStageSlot stage) override;
 		bool BindMaterial() const override;
+		u64 GetId() const override;
 
 	private:
 		DX11Renderer* m_Renderer;
+		u64 m_Id;
 
 		std::array<std::vector<Ref<Buffer>>, (u64)ShaderStageSlot::Count> m_BuffersCOM;
 		std::array<std::vector<ID3D11Buffer*>, (u64)ShaderStageSlot::Count> m_Buffers; // MANAGED BY ComPtr in DX11Buffer above!

@@ -8,5 +8,7 @@ namespace Tupla
     public:
         EditorLayer() = default;
         void OnGUI() override;
+
+        void OnDetach() override;
     };
 }

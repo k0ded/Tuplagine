@@ -21,23 +21,33 @@ constexpr const char* HEADER = "TUP";
 // PhysicalFile - Length bytes
 
 // ASSET FORMAT
-// AssetID		- 4 bytes
+// AssetID		- 8 bytes
+// PhysicalFile - 8 bytes (index into files)
 // Offset		- 8 bytes
 // Size			- 8 bytes
-// PhysicalFile - 4 bytes (index into files)
 // Packed		- 1 byte
 
+#ifdef __GNUC__
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
+
+PACK(
 struct SAVEDASSET
 {
-	u32 assetID = 0;
-	size_t offset = 0;
-	size_t size = 0;
-	u32 physicalIndex = 0;
+	u64 assetID = 0;
+	u64 physicalIndex = 0;
+	u64 offset = 0;
+	u64 size = 0;
 	bool packed = false;
 };
+)
 
 constexpr int FILE_MIN_SIZE = 5;
-constexpr int ASSET_SIZE = 25;
+constexpr int ASSET_SIZE = sizeof(SAVEDASSET);
 
 Tupla::AssetManager::AssetManager(std::string CacheLocation): m_CacheLocation(std::move(CacheLocation)),
                                                               m_Version(0)
@@ -113,7 +123,7 @@ bool Tupla::AssetManager::LoadVirtualMap()
 		mPtr += 4 + strSize + 1; // last 1 to include the null terminator.
 	}
 
-	std::unordered_map<u32, AssetEntry> VMap{};
+	std::unordered_map<u64, AssetEntry> VMap{};
 
 	for (int i = 0; i < assetCount; ++i)
 	{
@@ -148,7 +158,7 @@ void Tupla::AssetManager::SaveVirtualMap()
 	byteSize += m_VirtualToPhysicalMap.size() * ASSET_SIZE;
 
 	std::set<std::string> strings{};
-	std::unordered_map<u32, u32> idToPhysicalIndex{};
+	std::unordered_map<u64, u64> idToPhysicalIndex{};
 
 	for (auto& [id, entry] : m_VirtualToPhysicalMap)
 	{
@@ -158,7 +168,7 @@ void Tupla::AssetManager::SaveVirtualMap()
 		{
 			byteSize += 4; // Forgot the size specifier oopsie
 			byteSize += entry.PhysicalFilePath.size() + 1; // We cannot forget the null terminator!
-			idToPhysicalIndex[id] = static_cast<u32>(strings.size()) - 1;
+			idToPhysicalIndex[id] = strings.size() - 1;
 		}
 		else 
 		{
@@ -202,9 +212,9 @@ void Tupla::AssetManager::SaveVirtualMap()
 		SAVEDASSET obj =
 		{
 			id,
+			idToPhysicalIndex[id],
 			entry.Offset,
 			entry.Size,
-			idToPhysicalIndex[id],
 			entry.IsPacked
 		};
 
@@ -225,6 +235,7 @@ void Tupla::AssetManager::SaveVirtualMap()
 void Tupla::AssetManager::BuildVirtualMap()
 {
 	const auto workingDirectory = Application::Get().GetSpecification().WorkingDirectory + "\\Assets\\";
+	const auto cacheDirectory = Application::Get().GetSpecification().WorkingDirectory + "\\" + m_CacheLocation + "\\";
 
 	if(workingDirectory.empty())
 	{
@@ -234,20 +245,48 @@ void Tupla::AssetManager::BuildVirtualMap()
 	CU::CreateDirectories(workingDirectory.c_str());
 
 	std::vector<std::string> files {};
+	std::vector<std::string> cachedFiles {};
 	CU::FindAll(workingDirectory.c_str(), files);
+
+	CU::FindAll(cacheDirectory.c_str(), cachedFiles);
+
+	for (const auto& cached_file : cachedFiles)
+	{
+		u64 hash = HASH_RUNTIME_STR(cached_file.c_str());
+		bool exists = false;
+
+		for (const auto& file : files)
+		{
+			u64 ahash = HASH_RUNTIME_STR(file.c_str());
+
+			if(ahash == hash)
+			{
+				exists = true;
+				break;
+			}
+		}
+
+		if(!exists)
+		{
+			if(!CU::RemoveFile(cached_file.c_str()))
+			{
+				LOG_WARN("Failed to remove cached file: {}", cached_file);
+			}
+		}
+	}
 
 	for (const auto& file : files)
 	{
 		auto fileName = file.substr(workingDirectory.size());
 
-		int hash = HASH_RUNTIME_STR(fileName);
+		const u64 hash = HASH_RUNTIME_STR(fileName.c_str());
 
 		if (!m_VirtualToPhysicalMap.contains(hash))
 		{
-			const auto cacheLocation = m_CacheLocation + "\\" + fileName;
+			const auto cacheLocation = cacheDirectory + fileName;
 			m_VirtualToPhysicalMap[hash].PhysicalFilePath = fileName;
 
-			if (CU::FileExists((Application::Get().GetSpecification().WorkingDirectory + "\\" + cacheLocation).c_str()))
+			if (CU::FileExists(cacheLocation.c_str()))
 			{
 				m_VirtualToPhysicalMap[hash].IsPacked = true;
 				LOG_INFO("Found cached file: {}", cacheLocation);

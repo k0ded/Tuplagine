@@ -81,7 +81,6 @@ void Tupla::FBXSerializer::GatherMeshes()
 			}
 
 			// TODO: Create a valid material and copy relevant information!
-			mesh->m_MaterialId = HASH_RUNTIME_STR(fbxMesh->getMaterial(j)->name);
 			mesh->m_SubMesh = materialCount > 1 ? j : -1;
 			mesh->m_LOD = DetectMeshLOD(fbxMesh);
 

@@ -93,3 +93,8 @@ void Tupla::EditorLayer::OnGUI()
 
 	ImGui::ShowDemoWindow();
 }
+
+void Tupla::EditorLayer::OnDetach()
+{
+	Application::Get().GetAssetManager().SaveVirtualMap();
+}

@@ -7,7 +7,7 @@ namespace Tupla
     class Texture2D final : public Asset
     {
     public:
-        explicit Texture2D(const int aId): Asset(aId) {}
+        explicit Texture2D(const u64 aId): Asset(aId) {}
 
         operator Ref<Texture>() { return m_Texture; }
 

@@ -40,8 +40,6 @@ namespace Tupla
 		void ExtractEmbedded(const std::string& srcDirectory);
 		int DetectMeshLOD(const ofbx::Mesh* mesh);
 
-		void GetImportMeshName(ofbx::Mesh* mesh, char(&out)[256]);
-
 		// Working memory
 		FBXSerializeSettings settings;
 		float m_FBXScale;

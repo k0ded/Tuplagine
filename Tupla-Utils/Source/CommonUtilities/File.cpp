@@ -67,6 +67,11 @@ namespace CommonUtilities
 		return true;
 	}
 
+	bool RemoveFile(const char* aPath)
+	{
+		return std::filesystem::remove(aPath);
+	}
+
 	void FindAll(const char* aPath, std::vector<std::string>& aPaths, PathType aPathType)
 	{
 		for (const auto& entry : std::filesystem::directory_iterator(aPath))

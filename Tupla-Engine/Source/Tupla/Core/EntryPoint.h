@@ -32,4 +32,6 @@ int main(int argc, char** argv)
         Tupla::Application::Get().Run();
     }
     while (Tupla::Application::m_Restarting);
+
+    delete Tupla::Application::s_Application;
 }

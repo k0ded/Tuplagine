@@ -15,11 +15,42 @@ namespace Tupla
         std::string PhysicalFilePath;
         bool IsPacked = false;
     };
+
+    template <typename T>
+    inline void TransformAssetPath(std::string& ) {  }
     
     class AssetManager
     {
     public:
 	    explicit AssetManager(std::string CacheLocation = "Cache");
+
+        template <typename T> requires(std::is_base_of_v<Asset, T>)
+    	void SaveAsset(const T& Asset, const std::string& aFilePath, bool packed = false, u32 aOffset = 0)
+        {
+            Asset.m_Id = HASH_RUNTIME_STR(aFilePath.c_str());
+            m_VirtualToPhysicalMap[Asset.m_Id].PhysicalFilePath = aFilePath;
+            SaveAsset(Asset, packed, aOffset);
+        }
+
+        template <typename T> requires(std::is_base_of_v<Asset, T>)
+        void SaveAsset(const T& Asset, bool packed = false, u32 aOffset = 0)
+        {
+            if(m_VirtualToPhysicalMap.contains(Asset.m_Id))
+            {
+                std::vector<std::byte> data;
+                if (packed) Asset.SerializeAssetPacked(data);
+                else Asset.SerializeAsset(data);
+
+                if(!CU::WriteFileBinary(GetAssetPath(m_VirtualToPhysicalMap[Asset.m_Id].PhysicalFilePath), data.data(), data.size(), aOffset))
+                {
+                    LOG_ERROR("Failed to save asset!");
+                    return;
+                }
+
+                m_VirtualToPhysicalMap[Asset.m_Id].Size = data.size();
+                m_VirtualToPhysicalMap[Asset.m_Id].Offset = aOffset;
+            }
+        }
 
         template <typename T> requires(std::is_base_of_v<Asset, T>)
         std::shared_ptr<T> GetAssetFromID(int aId) const
@@ -30,7 +61,7 @@ namespace Tupla
         template <typename T> requires(std::is_base_of_v<Asset, T>)
         std::shared_ptr<T> GetAssetFromFile(const std::string& aFile)
         {
-            auto hash = HASH_RUNTIME_STR(aFile);
+            auto hash = HASH_RUNTIME_STR(aFile.c_str());
 
             if (!m_VirtualToPhysicalMap.contains(hash))
             {
@@ -53,20 +84,22 @@ namespace Tupla
 
         bool TryInvalidate(const std::string& aFile)
         {
-	        const auto hash = HASH_RUNTIME_STR(aFile);
+	        const auto hash = HASH_RUNTIME_STR(aFile.c_str());
             if (!m_VirtualToPhysicalMap.contains(hash)) return false;
 
             // For editor invalidation
             if (m_VirtualToPhysicalMap[hash].IsPacked && !m_ReadPackedAssets)
             {
-                const auto rawTS = CU::GetFileTimeStamp(aFile.c_str());
-                const auto packedTS = CU::GetFileTimeStamp(m_VirtualToPhysicalMap[hash].PhysicalFilePath.c_str());
+                const auto rawTS = CU::GetFileTimeStamp(GetAssetPath(aFile).c_str());
+                const auto packedTS = CU::GetFileTimeStamp(GetCachePath(aFile).c_str());
 
                 if (packedTS < rawTS)
                 {
                     // Invalidate!!!
                     m_VirtualToPhysicalMap[hash].IsPacked = false;
                     m_VirtualToPhysicalMap[hash].PhysicalFilePath = aFile;
+                    m_VirtualToPhysicalMap[hash].Offset = 0;
+                    m_VirtualToPhysicalMap[hash].Size = 0;
                     return true;
                 }
             }
@@ -84,7 +117,7 @@ namespace Tupla
 
     private:
         template <typename T> requires(std::is_base_of_v<Asset, T>)
-        std::shared_ptr<T> GetOrLoadAsset(const int aId)
+        std::shared_ptr<T> GetOrLoadAsset(u64 aId)
         {
             // These are the most likely to hit so try them first!
             if (m_TemporaryAssetCache.contains(aId))
@@ -121,6 +154,7 @@ namespace Tupla
             	if (CU::WriteFileBinary(cacheLocation.c_str(), data.data(), static_cast<u32>(data.size())))
             	{
             		m_VirtualToPhysicalMap[aId].IsPacked = true;
+            		m_VirtualToPhysicalMap[aId].Size = data.size();
             	}
             }
 
@@ -129,8 +163,16 @@ namespace Tupla
                 const auto& [Offset, Size, PhysicalFilePath, isPacked] = m_VirtualToPhysicalMap[aId];
 
                 std::vector<std::byte> data;
-                auto size = CU::ReadFileBinary((m_CacheLocation + "\\" + PhysicalFilePath).c_str(), data, Size, Offset);
+                auto size = CU::ReadFileBinary((m_CacheLocation + "\\" + PhysicalFilePath).c_str(), data, (u32)Size, (u32)Offset);
 
+                if (size == 0)
+                {
+                    if(TryInvalidate(PhysicalFilePath))
+                    {
+                        GetOrLoadAsset<T>(aId);
+                    }
+                    return asset;
+                }
             	m_TemporaryAssetCache[aId] = asset;
             	asset->DeserializeAssetPacked(data.data(), size);
             }
@@ -138,9 +180,9 @@ namespace Tupla
         	return asset;
         }
 
-        std::unordered_map<u32, std::weak_ptr<Asset>> m_TemporaryAssetCache{};
-        std::unordered_map<u32, std::shared_ptr<Asset>> m_PersistentAssetCache{};
-        std::unordered_map<u32, AssetEntry> m_VirtualToPhysicalMap{};
+        std::unordered_map<u64, std::weak_ptr<Asset>> m_TemporaryAssetCache{};
+        std::unordered_map<u64, std::shared_ptr<Asset>> m_PersistentAssetCache{};
+        std::unordered_map<u64, AssetEntry> m_VirtualToPhysicalMap{};
         std::string m_CacheLocation;
         std::string m_AbsoluteCacheLocation;
         size_t m_Version;

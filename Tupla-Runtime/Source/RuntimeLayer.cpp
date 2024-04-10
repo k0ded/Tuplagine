@@ -72,7 +72,6 @@ void Tupla::RuntimeLayer::OnUpdate()
 
 		m_CameraTransform.SetPosition(pos);
 		m_CameraTransform = CU::Matrix4x4<float>::CreateRotation(rotationDifference) * m_CameraTransform;
-		LOG_INFO("Cam position: {}, {}, {}", pos.x, pos.y, pos.z);
 	}
 
 	data.worldToCamera = m_CameraTransform.GetFastInverse();

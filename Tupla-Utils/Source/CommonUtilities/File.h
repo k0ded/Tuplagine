@@ -19,6 +19,8 @@ namespace CommonUtilities
 	size_t ReadFileBinary(const char *aPath, std::vector<std::byte>& aData, unsigned int aLength = ~0u, unsigned int aOffset = 0);
 	bool WriteFileBinary(const char* aPath, const std::byte* aData, unsigned int aLength, int aOffset = 0);
 
+	bool RemoveFile(const char* aPath);
+
 	void FindAll(const char* aPath, std::vector<std::string>& aPaths, PathType aPathType = PathType::File);
 
 	bool CreateDirectoriesForPath(const char* aPath);

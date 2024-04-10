@@ -36,7 +36,10 @@ namespace Tupla
         virtual ~Mesh() = default;
 
         virtual void CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>& indices, const std::string& debugName = "GenericMesh") = 0;
+        virtual void CreateMesh(const std::byte* aData, u64 dataSize, const std::string& debugName = "GenericMesh") = 0;
         virtual bool AttachMesh() = 0;
+
+        virtual void AppendMeshData(std::vector<std::byte>& outResult) = 0;
 
         [[nodiscard]] u32 GetVertexCount() const { return m_VertexCount; }
         [[nodiscard]] u32 GetIndexCount() const { return m_IndexCount; }
@@ -45,7 +48,7 @@ namespace Tupla
         bool m_IsSkinned;
         int m_SubMesh;
         int m_LOD;
-        u32 m_MaterialId;
+        u64 m_MaterialId;
 
     protected:
         u32 m_VertexCount {};
