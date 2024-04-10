@@ -71,15 +71,15 @@ namespace CommonUtilities
             myIsDown[i] = myIsDownFresh[i];
             myIsDownFresh[i] = false;
 
-            if(myIsUpTicked[i])
+            if(myIsUp[i])
             {
                 myIsHeld[i] = false;
+                myIsUpFresh[i] = false;
                 myIsUp[i] = false;
-                myIsUpTicked[i] = false;
             }
-            else if(myIsUp[i] && myIsHeld[i])
+            else if(myIsUpFresh[i] && myIsHeld[i])
             {
-                myIsUpTicked[i] = true;
+                myIsUp[i] = true;
             }
         }
     }
@@ -179,9 +179,6 @@ namespace CommonUtilities
 
     void InputHandler::UpdateKeyCode(int aCode, bool aUp)
     {
-        if(!aUp && (myIsDown[aCode] || myIsHeld[aCode] || myIsDownFresh[aCode]))
-            return;
-        
-        (aUp ? myIsUp : myIsDownFresh)[aCode] = true;
+    	(aUp ? myIsUpFresh : myIsDownFresh)[aCode] = true;
     }
 }

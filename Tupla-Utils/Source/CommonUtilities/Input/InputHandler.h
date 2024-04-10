@@ -26,8 +26,8 @@ namespace CommonUtilities
         [[nodiscard]] bool GetKeyUp(KeyCode aKeyCode) const;
         [[nodiscard]] Mouse GetMouse() const;
     private:
-        std::bitset<256> myIsUpTicked;
         std::bitset<256> myIsUp;
+        std::bitset<256> myIsUpFresh;
         std::bitset<256> myIsHeld;
         std::bitset<256> myIsDown;
         std::bitset<256> myIsDownFresh;

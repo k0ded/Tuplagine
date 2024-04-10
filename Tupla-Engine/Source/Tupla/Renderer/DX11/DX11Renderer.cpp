@@ -1,5 +1,6 @@
 #include "tgpch.h"
 #include "DX11Renderer.h"
+#include <wrl.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
@@ -9,10 +10,15 @@
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
+#include "Tupla/Utils/StringUtils.h"
 
 #pragma comment(lib, "user32")
 #pragma comment(lib, "d3d11")
 #pragma comment(lib, "d3dcompiler")
+#pragma comment(lib, "dxgi")
+#pragma comment(lib, "dxguid")
+
+using namespace Microsoft::WRL;
 
 namespace Tupla
 {
@@ -44,7 +50,7 @@ namespace Tupla
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        m_ViewportTexture = std::make_unique<DX11RenderTexture>(this, 128u, 128u, true);
+        m_ViewportTexture = std::make_unique<DX11RenderTexture>(this, 128u, 128u, true, "Viewport");
         ImGui_ImplWin32_Init(m_Window->GetWindowHandle());
         ImGui_ImplDX11_Init(m_Device.Get(), m_Context.Get());
         return true;
@@ -95,7 +101,7 @@ namespace Tupla
 
             if (m_ViewportSize.x != m_ViewportTexture->m_Width || m_ViewportSize.y != m_ViewportTexture->m_Height)
             {
-                m_ViewportTexture = std::make_unique<DX11RenderTexture>(this, m_ViewportSize.x, m_ViewportSize.y, m_ViewportTexture->m_UsesDepth);
+                m_ViewportTexture = std::make_unique<DX11RenderTexture>(this, m_ViewportSize.x, m_ViewportSize.y, m_ViewportTexture->m_UsesDepth, "Viewport");
             }
         }
 
@@ -143,7 +149,8 @@ namespace Tupla
             ImGui::RenderPlatformWindowsDefault();
         }
 
-        auto result = m_SwapChain->Present(0, 0);
+
+        auto result = m_SwapChain->Present(0, DXGI_PRESENT_ALLOW_TEARING);
         ASSERT(SUCCEEDED(result), "Failed to present rendered frame!")
 	}
 
@@ -195,41 +202,106 @@ namespace Tupla
         }
 	}
 
+	void DX11Renderer::SetObjectName(ID3D11DeviceChild* aObject, const char* aName)
+	{
+        if(aObject)
+        {
+            aObject->SetPrivateData(WKPDID_D3DDebugObjectName, strlen(aName), aName);
+        }
+	}
+
 	void DX11Renderer::CreateSwapChain()
 	{
-        D3D_FEATURE_LEVEL featurelevels[] = { D3D_FEATURE_LEVEL_11_0 };
+        HRESULT result = E_FAIL;
 
-        DXGI_SWAP_CHAIN_DESC swapchainDesc = {};
-        swapchainDesc.BufferDesc.Width = 0; // use window width
-        swapchainDesc.BufferDesc.Height = 0; // use window height
-        swapchainDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-        swapchainDesc.SampleDesc.Count = 1;
-        swapchainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swapchainDesc.BufferCount = 2;
-        swapchainDesc.OutputWindow = (HWND)m_Window->GetWindowHandle();
-        swapchainDesc.Windowed = TRUE;
-        swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        ComPtr<IDXGIFactory> dxFactory;
+        result = CreateDXGIFactory(__uuidof(IDXGIFactory), &dxFactory);
 
+        ASSERT(SUCCEEDED(result), "Failed to create DX Factory");
+
+		LOG_INFO("Initializing DX11Renderer");
+
+        ComPtr<IDXGIAdapter> tempAdapter;
+        std::vector<ComPtr<IDXGIAdapter>> adapters;
+
+        while(dxFactory->EnumAdapters(adapters.size(), &tempAdapter) != DXGI_ERROR_NOT_FOUND)
+        {
+            adapters.push_back(tempAdapter);
+        }
+
+        ComPtr<IDXGIAdapter> selectedAdapter;
+        size_t selectedAdapterVRAM = 0;
+        DXGI_ADAPTER_DESC selectedAdapterDesc{};
+
+        for (const auto& adapter : adapters)
+        {
+            DXGI_ADAPTER_DESC currentDesc{};
+            adapter->GetDesc(&currentDesc);
+            if (selectedAdapterVRAM < currentDesc.DedicatedVideoMemory)
+            {
+                selectedAdapterVRAM = currentDesc.DedicatedVideoMemory;
+                selectedAdapter = adapter;
+                selectedAdapterDesc = currentDesc;
+            }
+        }
+
+        const wchar_t* wideAdapterName = selectedAdapterDesc.Description;
+        std::string adapterName = WideToString(wideAdapterName);
+
+        LOG_INFO("Selected adapter: {}", adapterName);
+        constexpr size_t KB = (1024ULL);
+        constexpr size_t MB = (KB * 1024ULL);
+        const char* selectedType = "bytes";
+
+        if (selectedAdapterVRAM > MB)
+        {
+            selectedAdapterVRAM /= MB;
+            selectedType = "MB";
+        }
+        else if (selectedAdapterVRAM > KB)
+        {
+            selectedAdapterVRAM /= KB;
+            selectedType = "KB";
+        }
+
+        LOG_INFO(" * VRAM: {} {}", selectedAdapterVRAM, selectedType);
 
         UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #ifdef DEBUG
         flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-        D3D11CreateDeviceAndSwapChain(
-            nullptr,
-            D3D_DRIVER_TYPE_HARDWARE,
-            nullptr,
+        result = D3D11CreateDevice(
+            selectedAdapter.Get(),
+            D3D_DRIVER_TYPE_UNKNOWN,
+            NULL,
             flags,
-            featurelevels,
-            ARRAYSIZE(featurelevels),
+            NULL,
+            0,
             D3D11_SDK_VERSION,
-            &swapchainDesc,
-            &m_SwapChain,
             &m_Device,
-            nullptr,
+            NULL,
             &m_Context
         );
+
+        ASSERT(SUCCEEDED(result), "Failed to initialize DirectX!");
+
+        D3D_FEATURE_LEVEL featurelevels[] = { D3D_FEATURE_LEVEL_11_0 };
+
+        DXGI_SWAP_CHAIN_DESC swapchainDesc = {};
+        swapchainDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        swapchainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        swapchainDesc.BufferCount = 2;
+
+        swapchainDesc.OutputWindow = (HWND)m_Window->GetWindowHandle();
+        swapchainDesc.SampleDesc.Count = 1;
+
+        swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+		swapchainDesc.Windowed = TRUE;
+
+        result = dxFactory->CreateSwapChain(m_Device.Get(), &swapchainDesc, &m_SwapChain);
+        ASSERT(SUCCEEDED(result), "Failed to create SwapChain!");
 
         m_SwapChain->GetDesc(&swapchainDesc);
 
@@ -248,7 +320,7 @@ namespace Tupla
         result = m_SwapChain->ResizeBuffers(swapchainDesc.BufferCount, m_RenderingSize.x, m_RenderingSize.y, swapchainDesc.BufferDesc.Format, swapchainDesc.Flags);
         ASSERT(SUCCEEDED(result), "Failed to resize swapchain buffers");
 
-        m_SwapChainRenderTexture = CreateScope<DX11RenderTexture>(this, (float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height, true);
+        m_SwapChainRenderTexture = CreateScope<DX11RenderTexture>(this, (float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height, true, "SwapChain");
 		m_DXViewport = {
 			0.0f, 0.0f,
 			(float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height,
@@ -263,6 +335,7 @@ namespace Tupla
 	{
         auto result = m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)m_SwapChainRenderTexture->m_Texture.GetAddressOf());
         ASSERT(SUCCEEDED(result), "Failed to get framebuffer from swapchain");
+        SetObjectName(m_SwapChainRenderTexture->m_Texture.Get(), "SwapChain_TEX");
 
         D3D11_RENDER_TARGET_VIEW_DESC framebufferRTVdesc = {}; // needed for SRGB framebuffer when using FLIP model swap effect
         framebufferRTVdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
@@ -270,6 +343,7 @@ namespace Tupla
 
         result = m_Device->CreateRenderTargetView(m_SwapChainRenderTexture->m_Texture.Get(), &framebufferRTVdesc, &m_SwapChainRenderTexture->m_TextureRTV);
         ASSERT(SUCCEEDED(result), "Failed to create RenderTargetView from framebuffer");
+        SetObjectName(m_SwapChainRenderTexture->m_TextureRTV.Get(), "SwapChain_RTV");
 	}
 
 	void DX11Renderer::CreateDepthBuffer()
@@ -283,9 +357,11 @@ namespace Tupla
 
         auto result = m_Device->CreateTexture2D(&depthbufferdesc, nullptr, &m_SwapChainRenderTexture->m_DepthTexture);
         ASSERT(SUCCEEDED(result), "Failed to create depth texture");
+        SetObjectName(m_SwapChainRenderTexture->m_DepthTexture.Get(), "SwapChain_DEPTH");
 
         result = m_Device->CreateDepthStencilView(m_SwapChainRenderTexture->m_DepthTexture.Get(), nullptr, &m_SwapChainRenderTexture->m_DepthDSV);
         ASSERT(SUCCEEDED(result), "Failed to create depth stencil view");
+        SetObjectName(m_SwapChainRenderTexture->m_DepthDSV.Get(), "SwapChain_DSV");
 	}
 
 	void DX11Renderer::CreateStates()

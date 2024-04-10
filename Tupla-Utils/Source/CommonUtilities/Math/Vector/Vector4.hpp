@@ -163,7 +163,7 @@ namespace CommonUtilities
     template <class T>
     Vector3<T> Vector4<T>::ToVec3() const
     {
-        return { x, y, w };
+        return { x, y, z };
     }
 
     template <class T>

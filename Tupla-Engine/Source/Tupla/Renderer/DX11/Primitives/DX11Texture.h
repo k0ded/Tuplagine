@@ -16,7 +16,7 @@ namespace Tupla
 		DX11Texture(DX11Renderer* renderer);
 		~DX11Texture() override;
 
-		bool SetImageData(void* imageData, u32 texWidth, u32 texHeight) override;
+		bool SetImageData(void* imageData, u32 texWidth, u32 texHeight, const std::string& debugName = "GenericTexture") override;
 		void GetImageData(std::vector<std::byte>& data) override;
 		void* ImGuiRID() override { return m_TextureSRV.Get(); }
 

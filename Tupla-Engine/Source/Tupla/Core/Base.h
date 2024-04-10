@@ -1,4 +1,5 @@
 #pragma once
+#define NOMINMAX
 
 #include <memory>
 #include <CommonUtilities/g_types.h>

@@ -27,8 +27,8 @@ namespace Tupla
     {
     public:
         virtual ~Shader() = default;
-        virtual bool CompileShader(const std::wstring& path, ShaderStage stage, bool debug = true) = 0;
-        virtual bool CompileShader(void* data, size_t byteSize, ShaderStage stage) = 0;
+        virtual bool CompileShader(const std::wstring& path, ShaderStage stage, bool debug = true, const std::string& debugName = "GenericShader") = 0;
+        virtual bool CompileShader(void* data, size_t byteSize, ShaderStage stage, const std::string& debugName) = 0;
 
         int GetStages() const { return m_Stage; }
 

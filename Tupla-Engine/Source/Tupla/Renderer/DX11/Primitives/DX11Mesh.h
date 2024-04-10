@@ -13,7 +13,7 @@ namespace Tupla
 	public:
 		DX11Mesh(DX11Renderer* renderer);
 		~DX11Mesh() override;
-		void CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>& indices) override;
+		void CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>& indices, const std::string& debugName = "GenericMesh") override;
 		bool AttachMesh() override;
 
 	private:

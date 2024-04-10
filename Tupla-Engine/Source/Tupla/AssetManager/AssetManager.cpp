@@ -9,12 +9,12 @@ constexpr const char* VMAP_PATH = "data.vmb"; // Virtual Map Binary (VMB)
 constexpr const char* HEADER = "TUP";
 
 // VMB FORMAT
-// Header - 3 bytes "TUP"
-// Version - 8 bytes
-// FileCount - 4 bytes
-// AssetCount - 4 bytes
-// Files - xxx bytes
-// Assets - xxx bytes
+// Header		- 3 bytes "TUP"
+// Version		- 8 bytes
+// FileCount	- 4 bytes
+// AssetCount	- 4 bytes
+// Files		- xxx bytes
+// Assets		- xxx bytes
 
 // FILE FORMAT
 // Length - 4 bytes
@@ -158,7 +158,7 @@ void Tupla::AssetManager::SaveVirtualMap()
 		{
 			byteSize += 4; // Forgot the size specifier oopsie
 			byteSize += entry.PhysicalFilePath.size() + 1; // We cannot forget the null terminator!
-			idToPhysicalIndex[id] = strings.size() - 1;
+			idToPhysicalIndex[id] = static_cast<u32>(strings.size()) - 1;
 		}
 		else 
 		{
@@ -182,8 +182,8 @@ void Tupla::AssetManager::SaveVirtualMap()
 	data[2] = static_cast<std::byte>(HEADER[2]);
 	memcpy(&data[3], &m_Version, sizeof(size_t));
 
-	const int fileCount = strings.size();
-	const int assetCount = m_VirtualToPhysicalMap.size();
+	const int fileCount = (int)strings.size();
+	const int assetCount = (int)m_VirtualToPhysicalMap.size();
 
 	memcpy(&data[11], &fileCount, 4);
 	memcpy(&data[15], &assetCount, 4);
@@ -191,7 +191,7 @@ void Tupla::AssetManager::SaveVirtualMap()
 	int mPtr = 19;
 	for (const auto& p : strings)
 	{
-		int strSize = p.size();
+		int strSize = (int)p.size();
 		memcpy(&data[mPtr], &strSize, 4);
 		memcpy(&data[mPtr + 4], p.c_str(), strSize + 1);
 		mPtr += 4 + strSize + 1;
@@ -212,7 +212,7 @@ void Tupla::AssetManager::SaveVirtualMap()
 		mPtr += ASSET_SIZE;
 	}
 
-	if(CU::WriteFileBinary(path.c_str(), data.data(), data.size()))
+	if(CU::WriteFileBinary(path.c_str(), data.data(), (u32)data.size()))
 	{
 		LOG_INFO("Successfully built VMAP binary! Located at: {}", path.c_str());
 	}
@@ -225,6 +225,12 @@ void Tupla::AssetManager::SaveVirtualMap()
 void Tupla::AssetManager::BuildVirtualMap()
 {
 	const auto workingDirectory = Application::Get().GetSpecification().WorkingDirectory + "\\Assets\\";
+
+	if(workingDirectory.empty())
+	{
+		return;
+	}
+
 	CU::CreateDirectories(workingDirectory.c_str());
 
 	std::vector<std::string> files {};
@@ -233,20 +239,21 @@ void Tupla::AssetManager::BuildVirtualMap()
 	for (const auto& file : files)
 	{
 		auto fileName = file.substr(workingDirectory.size());
+
 		int hash = HASH_RUNTIME_STR(fileName);
 
 		if (!m_VirtualToPhysicalMap.contains(hash))
 		{
 			const auto cacheLocation = m_CacheLocation + "\\" + fileName;
+			m_VirtualToPhysicalMap[hash].PhysicalFilePath = fileName;
+
 			if (CU::FileExists((Application::Get().GetSpecification().WorkingDirectory + "\\" + cacheLocation).c_str()))
 			{
-				m_VirtualToPhysicalMap[hash].PhysicalFilePath = cacheLocation;
 				m_VirtualToPhysicalMap[hash].IsPacked = true;
 				LOG_INFO("Found cached file: {}", cacheLocation);
 			}
 			else
 			{
-				m_VirtualToPhysicalMap[hash].PhysicalFilePath = "Assets\\" + fileName;
 				LOG_INFO("Found file: {}", fileName);
 			}
 		}

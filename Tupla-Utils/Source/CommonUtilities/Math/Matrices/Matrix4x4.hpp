@@ -626,14 +626,14 @@ namespace CommonUtilities
         Matrix4x4 translation;
 
         // Copy over an inverse of the translation from the rotation inverse
-        translation[12] = -rotationInversed[3];
-        translation[13] = -rotationInversed[7];
-        translation[14] = -rotationInversed[11];
+        translation.LinearArray[12] = -rotationInversed.LinearArray[3];
+        translation.LinearArray[13] = -rotationInversed.LinearArray[7];
+        translation.LinearArray[14] = -rotationInversed.LinearArray[11];
 
         // Get rid of the translation in the rotation inverse.
-        rotationInversed[3] = 0;
-        rotationInversed[7] = 0;
-        rotationInversed[11] = 0;
+        rotationInversed.LinearArray[3] = 0;
+        rotationInversed.LinearArray[7] = 0;
+        rotationInversed.LinearArray[11] = 0;
         
         return translation * rotationInversed;
     }
@@ -680,7 +680,7 @@ namespace CommonUtilities
     template <typename T>
     Matrix4x4<T> Matrix4x4<T>::CreateRotation(Vector3<T> aAngleInRadians)
     {
-        return CreateRotationAroundZ(aAngleInRadians.z) * CreateRotationAroundY(aAngleInRadians.y) * CreateRotationAroundX(aAngleInRadians.x);
+        return CreateRotationAroundX(aAngleInRadians.x) * CreateRotationAroundZ(aAngleInRadians.z) * CreateRotationAroundY(aAngleInRadians.y);
     }
 
     template <typename T>

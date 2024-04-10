@@ -31,7 +31,7 @@ namespace Tupla
 
 	DX11Shader::~DX11Shader() = default;
 
-	bool DX11Shader::CompileShader(const std::wstring& path, const ShaderStage stage, bool debug)
+	bool DX11Shader::CompileShader(const std::wstring& path, const ShaderStage stage, bool debug, const std::string& debugName)
 	{
 		if (stage == ShaderStage::None)
 		{
@@ -79,10 +79,10 @@ namespace Tupla
 			return false;
 		}
 
-		return CompileShader(cso->GetBufferPointer(), cso->GetBufferSize(), stage);
+		return CompileShader(cso->GetBufferPointer(), cso->GetBufferSize(), stage, debugName);
 	}
 
-	bool DX11Shader::CompileShader(void* data, size_t dataSize, ShaderStage stage)
+	bool DX11Shader::CompileShader(void* data, size_t dataSize, ShaderStage stage, const std::string& debugName)
 	{
 		HRESULT result;
 		switch (stage)
@@ -91,6 +91,7 @@ namespace Tupla
 			result = m_Renderer->GetDevice()->CreateVertexShader(data, dataSize, nullptr, &m_VertexShader);
 
 			if (FAILED(result)) break;
+			DX11Renderer::SetObjectName(m_VertexShader.Get(), (debugName + "_VS").c_str());
 
 			result = m_Renderer->GetDevice()->CreateInputLayout(
 				Vertex::InputDescription,
@@ -105,18 +106,23 @@ namespace Tupla
 				LOG_ERROR("Failed to bind input layout!");
 				return false;
 			}
+			DX11Renderer::SetObjectName(m_InputLayout.Get(), (debugName + "_VInputLayout").c_str());
 			break;
 		case ShaderStage::Hull:
 			result = m_Renderer->GetDevice()->CreateHullShader(data, dataSize, nullptr, &m_HullShader);
+			DX11Renderer::SetObjectName(m_HullShader.Get(), (debugName + "_HS").c_str());
 			break;
 		case ShaderStage::Domain:
 			result = m_Renderer->GetDevice()->CreateDomainShader(data, dataSize, nullptr, &m_DomainShader);
+			DX11Renderer::SetObjectName(m_DomainShader.Get(), (debugName + "_DS").c_str());
 			break;
 		case ShaderStage::Pixel:
 			result = m_Renderer->GetDevice()->CreatePixelShader(data, dataSize, nullptr, &m_PixelShader);
+			DX11Renderer::SetObjectName(m_PixelShader.Get(), (debugName + "_PS").c_str());
 			break;
 		case ShaderStage::Compute:
 			result = m_Renderer->GetDevice()->CreateComputeShader(data, dataSize, nullptr, &m_ComputeShader);
+			DX11Renderer::SetObjectName(m_ComputeShader.Get(), (debugName + "_CS").c_str());
 			break;
 		}
 

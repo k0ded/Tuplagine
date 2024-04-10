@@ -34,6 +34,8 @@ namespace Tupla
 
 		void SetRenderTexture(const DX11RenderTexture* renderTexture = nullptr) const;
 
+		static void SetObjectName(ID3D11DeviceChild* aObject, const char* aName);
+
 		CLASS_RENDER_IMPL(DX11)
 	private:
 		void CreateSwapChain();

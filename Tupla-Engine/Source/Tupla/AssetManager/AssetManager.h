@@ -10,8 +10,8 @@ namespace Tupla
 {
     struct AssetEntry
     {
-        u64 Offset;
-        u64 Size;
+        u64 Offset = 0;
+        u64 Size = 0;
         std::string PhysicalFilePath;
         bool IsPacked = false;
     };
@@ -35,14 +35,11 @@ namespace Tupla
             if (!m_VirtualToPhysicalMap.contains(hash))
             {
             	const auto cacheLocation = m_CacheLocation + "\\" + aFile;
+                m_VirtualToPhysicalMap[hash].PhysicalFilePath = aFile;
+
                 if (CU::FileExists(cacheLocation.c_str()))
                 {
-                    m_VirtualToPhysicalMap[hash].PhysicalFilePath = cacheLocation;
                     m_VirtualToPhysicalMap[hash].IsPacked = true;
-                }
-                else
-                {
-                    m_VirtualToPhysicalMap[hash].PhysicalFilePath = "Assets\\" + aFile;
                 }
             }
 
@@ -119,11 +116,10 @@ namespace Tupla
             	std::vector<std::byte> data;
             	asset->SerializeAssetPacked(data);
 
-                const auto cacheLocation = m_CacheLocation + "\\" + m_VirtualToPhysicalMap[aId].PhysicalFilePath.substr(strlen("Assets\\"));
+                const auto cacheLocation = m_CacheLocation + "\\" + m_VirtualToPhysicalMap[aId].PhysicalFilePath;
 
-            	if (CU::WriteFileBinary(cacheLocation.c_str(), data.data(), data.size()))
+            	if (CU::WriteFileBinary(cacheLocation.c_str(), data.data(), static_cast<u32>(data.size())))
             	{
-            		m_VirtualToPhysicalMap[aId].PhysicalFilePath = cacheLocation;
             		m_VirtualToPhysicalMap[aId].IsPacked = true;
             	}
             }
@@ -133,7 +129,7 @@ namespace Tupla
                 const auto& [Offset, Size, PhysicalFilePath, isPacked] = m_VirtualToPhysicalMap[aId];
 
                 std::vector<std::byte> data;
-                auto size = CU::ReadFileBinary(PhysicalFilePath.c_str(), data, Size, Offset);
+                auto size = CU::ReadFileBinary((m_CacheLocation + "\\" + PhysicalFilePath).c_str(), data, Size, Offset);
 
             	m_TemporaryAssetCache[aId] = asset;
             	asset->DeserializeAssetPacked(data.data(), size);

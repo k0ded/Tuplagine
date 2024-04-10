@@ -14,8 +14,8 @@ namespace Tupla
 		DX11Shader(DX11Renderer* renderer);
 		~DX11Shader() override;
 
-		bool CompileShader(const std::wstring& path, ShaderStage stage, bool debug = true) override;
-		bool CompileShader(void* data, size_t dataSize, ShaderStage stage) override;
+		bool CompileShader(const std::wstring& path, ShaderStage stage, bool debug = true, const std::string& debugName = "GenericShader") override;
+		bool CompileShader(void* data, size_t dataSize, ShaderStage stage, const std::string& debugName) override;
 
 		template <typename T>
 		Microsoft::WRL::ComPtr<T> GetShader() = delete;

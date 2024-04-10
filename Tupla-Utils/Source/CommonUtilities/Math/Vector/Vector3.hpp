@@ -29,6 +29,9 @@ namespace CommonUtilities
         Vector3(const Vector3& aVector) = default;
         //Destructor (compiler generated)
         ~Vector3() = default;
+        template <class OtherVectorClass>
+        Vector3(const OtherVectorClass& vec);
+
         //Explicit Type operator, create a different vector with the same values.
         //Example creates a Tga::Vector3<T> from this CommonUtillities::Vector3<T>
         template <class OtherVectorClass>
@@ -66,6 +69,19 @@ namespace CommonUtilities
     Vector3<T>::Vector3(Vector2<T> aVector, T z)
         : x {aVector.x}, y { aVector.y }, z { z }
     {
+    }
+
+    template <class T>
+    template <class OtherVectorClass>
+    Vector3<T>::Vector3(const OtherVectorClass& vec) : x { T(vec.x) }, y { T(vec.y) }, z { T(vec.z) }
+    {
+    }
+
+    template <class T>
+    template <class OtherVectorClass>
+    Vector3<T>::operator OtherVectorClass() const
+    {
+        return { x, y, z };
     }
 
     template <class T>

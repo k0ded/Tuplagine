@@ -12,7 +12,7 @@ namespace Tupla
 
 	DX11Texture::~DX11Texture() = default;
 
-	bool DX11Texture::SetImageData(void* imageData, const u32 texWidth, const u32 texHeight)
+	bool DX11Texture::SetImageData(void* imageData, const u32 texWidth, const u32 texHeight, const std::string& debugName)
 	{
 		m_Width = texWidth;
 		m_Height = texHeight;
@@ -38,11 +38,15 @@ namespace Tupla
 			return false;
 		}
 
+		DX11Renderer::SetObjectName(m_Texture.Get(), (debugName + "_TEX").c_str());
+
 		result = m_Renderer->GetDevice()->CreateShaderResourceView(m_Texture.Get(), nullptr, &m_TextureSRV);
 		if (FAILED(result)) {
 			LOG_ERROR("Failed to create shader resource view");
 			return false;
 		}
+
+		DX11Renderer::SetObjectName(m_TextureSRV.Get(), (debugName + "_SRV").c_str());
 
 		return true;
 	}

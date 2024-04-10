@@ -7,23 +7,6 @@
 #include "Tupla/Core/Application.h"
 #include "Tupla/Utils/StringUtils.h"
 
-static void JobProccessor(ofbx::JobFunction fn, void*, void* data, u32 size, u32 count) {
-	
-	Tupla::Application::Get().GetJobManager().ScheduleJob(Job{
-		[data, size, fn, count]
-		{
-			for (unsigned i = 0; i < count; ++i)
-			{
-				u8* ptr = (u8*)data;
-				fn(ptr + i * size);
-			}
-		}
-	});
-
-	Tupla::Application::Get().GetJobManager().Await();
-}
-
-
 std::vector<Tupla::Ref<Tupla::Mesh>> Tupla::FBXSerializer::SerializeModel(const std::string& aSourcePath)
 {
 	if(m_Scene)
@@ -40,7 +23,7 @@ std::vector<Tupla::Ref<Tupla::Mesh>> Tupla::FBXSerializer::SerializeModel(const 
 		return {};
 	}
 
-	m_Scene = ofbx::load(reinterpret_cast<const u8*>(data.data()), static_cast<i32>(data.size()), static_cast<u16>(ofbx::LoadFlags::NONE), &JobProccessor, nullptr);
+	m_Scene = ofbx::load(reinterpret_cast<const u8*>(data.data()), static_cast<i32>(data.size()), static_cast<u16>(ofbx::LoadFlags::NONE), nullptr, nullptr);
 
 	if (!m_Scene)
 	{
@@ -51,15 +34,15 @@ std::vector<Tupla::Ref<Tupla::Mesh>> Tupla::FBXSerializer::SerializeModel(const 
 		return {};
 	}
 
-	m_FBXScale = m_Scene->getGlobalSettings()->UnitScaleFactor * 0.01f;
+	m_FBXScale = m_Scene->getGlobalSettings()->UnitScaleFactor;
 
 	const ofbx::GlobalSettings* settings = m_Scene->getGlobalSettings();
 
 	switch (settings->OriginalUpAxis)
 	{
-		case ofbx::UpVector_AxisX: m_Orientation = FBXOrientation::X_UP;
-		case ofbx::UpVector_AxisY: m_Orientation = FBXOrientation::Y_UP;
-		case ofbx::UpVector_AxisZ: m_Orientation = FBXOrientation::Z_UP;
+	case ofbx::UpVector_AxisX: m_Orientation = FBXOrientation::X_UP; break;
+	case ofbx::UpVector_AxisY: m_Orientation = FBXOrientation::Y_UP; break;
+	case ofbx::UpVector_AxisZ: m_Orientation = FBXOrientation::Z_UP; break;
 	}
 
 	ExtractEmbedded(std::filesystem::path(aSourcePath).parent_path().string());
@@ -113,6 +96,7 @@ void Tupla::FBXSerializer::GatherMeshes()
 			const auto partition = geom.getPartition(0);
 			std::vector<Vertex> vertices(geom.getPositions().count);
 			std::vector<u32> indices(partition.max_polygon_triangles * 3);
+			std::vector<u32> v{};
 
 			CU::Matrix4x4<float> matrix;
 
@@ -122,11 +106,11 @@ void Tupla::FBXSerializer::GatherMeshes()
 				{
 					const ofbx::GeometryPartition::Polygon& polygon = partition.polygons[polygonIdx];
 					u32 tri_count = ofbx::triangulate(geom, polygon, reinterpret_cast<i32*>(indices.data()));
+
 					for (u32 i = 0; i < tri_count; ++i) {
 						ofbx::Vec3 cp = positions.get(indices[i]);
-						CU::Vector3f pos = (static_cast<CU::Vector3f>(cp).ToVec4(1) * matrix * (settings.meshScale * m_FBXScale)).ToVec3();
 						//pos = fixOrientation(pos); TODO: Fix orientation for wrong UP vectors!
-						vertices[indices[i]].Position = pos;
+						vertices[indices[i]].Position = (static_cast<CU::Vector3f>(cp).ToVec4(1) * matrix * (settings.meshScale * m_FBXScale)).ToVec3();;
 
 						if (normals.values) {
 							vertices[indices[i]].Normal = (static_cast<CU::Vector3f>(normals.get(indices[i])).ToVec4(1) * matrix).ToVec3(); // TODO: FIX ORIENTATION HERE TOO
@@ -144,6 +128,8 @@ void Tupla::FBXSerializer::GatherMeshes()
 						{
 							vertices[indices[i]].Tangent = (static_cast<CU::Vector3f>(tangents.get(indices[i])).ToVec4() * matrix).ToVec3();
 						}
+
+						v.push_back(indices[i]);
 
 						/*if (mesh->m_IsSkinned) { TODO: LATER!
 							if (positions.indices) {
@@ -186,7 +172,7 @@ void Tupla::FBXSerializer::GatherMeshes()
 				}
 			}
 
-			mesh->CreateMesh(vertices, indices);
+			mesh->CreateMesh(vertices, v);
 		}
 	}
 }

@@ -4,12 +4,15 @@
 #include <filesystem>
 
 #include <CommonUtilities/Time/Time.h>
+
+#include "CommonUtilities/Input/Input.h"
 #include "Tupla/Renderer/DX11/DX11Renderer.h"
 
 namespace Tupla
 {
     Application::Application(ApplicationSpecification specification): m_Specification(std::move(specification))
     {
+        m_Running = false;
         m_Restarting = false;
         s_Application = this;
         Logger::Init();
@@ -64,6 +67,7 @@ namespace Tupla
         while (m_Running)
         {
             Time::Update();
+            Input::Update();
 
             m_Renderer->BeginFrame();
             {

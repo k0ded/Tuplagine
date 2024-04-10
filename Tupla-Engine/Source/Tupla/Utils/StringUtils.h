@@ -32,3 +32,61 @@ inline const char* FindInsensitive(const std::string& hayStack, const std::strin
 
 	return nullptr;
 }
+
+inline std::string WideToString(const std::wstring& aString)
+{
+	const int length = static_cast<int>(aString.length());
+
+	const int multiByteLength = WideCharToMultiByte(
+		CP_UTF8,
+		0,
+		aString.c_str(), 
+		length, 
+		nullptr, 
+		0, 
+		nullptr, 
+		nullptr
+	);
+
+	std::string result(multiByteLength, L'\0');
+
+	WideCharToMultiByte(
+		CP_UTF8,
+		0, 
+		aString.c_str(),
+		-1, 
+		result.data(),
+		multiByteLength, 
+		nullptr, 
+		nullptr
+	);
+
+	return result;
+}
+
+inline std::wstring StringToWide(const std::string& aString)
+{
+	const int length = static_cast<int>(aString.length());
+
+	const int charLength = MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		aString.c_str(),
+		length,
+		nullptr,
+		0
+	);
+
+	std::wstring result(charLength, L'\0');
+
+	MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		aString.c_str(),
+		-1,
+		result.data(),
+		charLength
+	);
+
+	return result;
+}

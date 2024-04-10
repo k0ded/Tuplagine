@@ -16,7 +16,7 @@ Tupla::DX11Mesh::~DX11Mesh()
 	m_VertexBuffer->Release();
 }
 
-void Tupla::DX11Mesh::CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>& indices)
+void Tupla::DX11Mesh::CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>& indices, const std::string& debugName)
 {
     m_VertexCount = static_cast<u32>(vertices.size());
     m_IndexCount = static_cast<u32>(indices.size());
@@ -30,6 +30,7 @@ void Tupla::DX11Mesh::CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>
 
     auto result = m_Renderer->GetDevice()->CreateBuffer(&vertexbufferdesc, &vertexbufferSRD, &m_VertexBuffer);
     ASSERT(SUCCEEDED(result), "Failed to create vertex buffer");
+    DX11Renderer::SetObjectName(m_VertexBuffer.Get(), (debugName + "_VB").c_str());
 
     if (indices.empty()) return;
 
@@ -42,6 +43,7 @@ void Tupla::DX11Mesh::CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>
 
     result = m_Renderer->GetDevice()->CreateBuffer(&indexbufferdesc, &indexbufferSRD, &m_IndexBuffer);
     ASSERT(SUCCEEDED(result), "Failed to create index buffer");
+    DX11Renderer::SetObjectName(m_IndexBuffer.Get(), (debugName + "_IB").c_str());
 }
 
 bool Tupla::DX11Mesh::AttachMesh()

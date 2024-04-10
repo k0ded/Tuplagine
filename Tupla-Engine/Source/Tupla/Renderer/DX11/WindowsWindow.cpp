@@ -1,6 +1,7 @@
 #include "tgpch.h"
 #include "WindowsWindow.h"
 
+#include "CommonUtilities/Input/Input.h"
 #include "Tupla/Core/Application.h"
 
 #define WND_CLASS_NAME L"MainWindowClass"
@@ -17,6 +18,9 @@ namespace Tupla
 	)
 	{
 		if (!Tupla::Application::m_Restarting && ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+			return true;
+
+		if (Input::UpdateEvents(uMsg, wParam, lParam))
 			return true;
 
 		switch (uMsg)

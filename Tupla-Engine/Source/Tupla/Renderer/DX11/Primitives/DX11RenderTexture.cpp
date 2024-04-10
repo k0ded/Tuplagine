@@ -3,7 +3,7 @@
 
 #include "Tupla/Renderer/DX11/DX11Renderer.h"
 
-Tupla::DX11RenderTexture::DX11RenderTexture(DX11Renderer* renderer, const u32 width, const u32 height, const bool usesDepth): DX11Texture(renderer)
+Tupla::DX11RenderTexture::DX11RenderTexture(DX11Renderer* renderer, const u32 width, const u32 height, const bool usesDepth, const std::string& aName): DX11Texture(renderer)
 {
 	m_Width = width;
 	m_Height = height;
@@ -20,10 +20,14 @@ Tupla::DX11RenderTexture::DX11RenderTexture(DX11Renderer* renderer, const u32 wi
 	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
 	auto result = m_Renderer->GetDevice()->CreateTexture2D(&textureDesc, nullptr, &m_Texture);
-	ASSERT(SUCCEEDED(result), "Failed to create texture!")
+	ASSERT(SUCCEEDED(result), "Failed to create texture!");
+	DX11Renderer::SetObjectName(m_Texture.Get(), (aName + "_TEX").c_str());
+
 
 	result = m_Renderer->GetDevice()->CreateShaderResourceView(m_Texture.Get(), nullptr, &m_TextureSRV);
 	ASSERT(SUCCEEDED(result), "Failed to create shader resource view")
+	DX11Renderer::SetObjectName(m_TextureRTV.Get(), (aName + "_SRV").c_str());
+
 
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc {};
 	renderTargetViewDesc.Format = textureDesc.Format;
@@ -33,17 +37,23 @@ Tupla::DX11RenderTexture::DX11RenderTexture(DX11Renderer* renderer, const u32 wi
 	// Create the render target view.
 	result = m_Renderer->GetDevice()->CreateRenderTargetView(m_Texture.Get(), &renderTargetViewDesc, &m_TextureRTV);
 	ASSERT(SUCCEEDED(result), "Failed to create render target view")
+	DX11Renderer::SetObjectName(m_TextureRTV.Get(), (aName + "_RTV").c_str());
 
 	if (!usesDepth) return;
 
 	textureDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
+
 	result = m_Renderer->GetDevice()->CreateTexture2D(&textureDesc, nullptr, &m_DepthTexture);
 	ASSERT(SUCCEEDED(result), "Failed to create depth texture")
+	DX11Renderer::SetObjectName(m_DepthTexture.Get(), (aName + "_DEPTH").c_str());
+
 
 	result = m_Renderer->GetDevice()->CreateDepthStencilView(m_DepthTexture.Get(), nullptr, &m_DepthDSV);
 	ASSERT(SUCCEEDED(result), "Failed to create depth stencil view")
+	DX11Renderer::SetObjectName(m_DepthDSV.Get(), (aName + "_DSV").c_str());
+
 
 	m_Viewport = { 0.f, 0.f, static_cast<float>(m_Width), static_cast<float>(m_Height), 0.f, 1.f };
 }
