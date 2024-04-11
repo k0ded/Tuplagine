@@ -42,9 +42,9 @@ namespace Tupla
 
 		// Working memory
 		FBXSerializeSettings settings;
-		float m_FBXScale;
-		FBXOrientation m_Orientation;
 
+		float m_FBXScale = 1.f;
+		FBXOrientation m_Orientation = FBXOrientation::Y_UP;
 		std::vector<Ref<Mesh>> m_Meshes {};
 
 		ofbx::IScene* m_Scene{};

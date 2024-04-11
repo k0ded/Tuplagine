@@ -61,9 +61,9 @@ void Tupla::EditorLayer::OnGUI()
 	{
 		Hierarchy hierarchy;
 	}
-	{
-		Assets assets;
-	}
+
+	m_Assets.OnGUI();
+
 	{
 		Console console;
 	}

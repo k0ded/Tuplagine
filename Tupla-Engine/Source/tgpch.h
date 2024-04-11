@@ -4,6 +4,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 #define TUP_ENGINE
+#define _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING
 
 #include <iostream>
 #include <memory>

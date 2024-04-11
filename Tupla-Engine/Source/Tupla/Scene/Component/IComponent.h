@@ -8,7 +8,12 @@ class IComponent
 public:
     IComponent()
     {
-        CoCreateGuid(&m_Id);
+        HRESULT result = CoCreateGuid(&m_Id);
+
+    	if(FAILED(result))
+        {
+            LOG_ERROR("Failed to give component a GUID");
+        }
     }
     virtual ~IComponent() = default;
 

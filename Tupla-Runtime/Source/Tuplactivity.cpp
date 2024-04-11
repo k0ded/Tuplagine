@@ -18,6 +18,7 @@ namespace Tupla
         Tupla::ApplicationSpecification spec;
         spec.ApplicationName = L"Tuplitor - Game";
         spec.CommandLineArgs = args;
+        spec.ApplicationDirectory = args.Args[0];
 
         return new Tuplactivity(spec);
     }

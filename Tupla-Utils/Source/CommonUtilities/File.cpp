@@ -72,7 +72,7 @@ namespace CommonUtilities
 		return std::filesystem::remove(aPath);
 	}
 
-	void FindAll(const char* aPath, std::vector<std::string>& aPaths, PathType aPathType)
+	void FindAll(const char* aPath, std::vector<std::string>& aPaths, PathType aPathType, bool recursive)
 	{
 		for (const auto& entry : std::filesystem::directory_iterator(aPath))
 		{
@@ -95,9 +95,9 @@ namespace CommonUtilities
 				aPaths.push_back(entry.path().string());
 			}
 
-			if (entry.is_directory())
+			if (entry.is_directory() && recursive)
 			{
-				FindAll(entry.path().string().c_str(), aPaths, aPathType);
+				FindAll(entry.path().string().c_str(), aPaths, aPathType, recursive);
 			}
 		}
 	}

@@ -21,7 +21,7 @@ namespace CommonUtilities
 
 	bool RemoveFile(const char* aPath);
 
-	void FindAll(const char* aPath, std::vector<std::string>& aPaths, PathType aPathType = PathType::File);
+	void FindAll(const char* aPath, std::vector<std::string>& aPaths, PathType aPathType = PathType::File, bool recursive = true);
 
 	bool CreateDirectoriesForPath(const char* aPath);
 	bool CreateDirectories(const char* aPath);
@@ -30,3 +30,5 @@ namespace CommonUtilities
 
 	size_t GetFileTimeStamp(const char* aPath);
 }
+
+namespace CU = CommonUtilities;

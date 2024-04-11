@@ -50,7 +50,7 @@ namespace Tupla
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        m_ViewportTexture = std::make_unique<DX11RenderTexture>(this, 128u, 128u, true, "Viewport");
+        m_ViewportTexture = std::make_unique<DX11RenderTexture>(this, 1u, 1u, true, "Viewport");
         ImGui_ImplWin32_Init(m_Window->GetWindowHandle());
         ImGui_ImplDX11_Init(m_Device.Get(), m_Context.Get());
         return true;
@@ -206,7 +206,7 @@ namespace Tupla
 	{
         if(aObject)
         {
-            aObject->SetPrivateData(WKPDID_D3DDebugObjectName, strlen(aName), aName);
+            aObject->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<u32>(strlen(aName)), aName);
         }
 	}
 
@@ -224,7 +224,7 @@ namespace Tupla
         ComPtr<IDXGIAdapter> tempAdapter;
         std::vector<ComPtr<IDXGIAdapter>> adapters;
 
-        while(dxFactory->EnumAdapters(adapters.size(), &tempAdapter) != DXGI_ERROR_NOT_FOUND)
+        while(dxFactory->EnumAdapters(static_cast<u32>(adapters.size()), &tempAdapter) != DXGI_ERROR_NOT_FOUND)
         {
             adapters.push_back(tempAdapter);
         }
@@ -320,7 +320,7 @@ namespace Tupla
         result = m_SwapChain->ResizeBuffers(swapchainDesc.BufferCount, m_RenderingSize.x, m_RenderingSize.y, swapchainDesc.BufferDesc.Format, swapchainDesc.Flags);
         ASSERT(SUCCEEDED(result), "Failed to resize swapchain buffers");
 
-        m_SwapChainRenderTexture = CreateScope<DX11RenderTexture>(this, (float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height, true, "SwapChain");
+        m_SwapChainRenderTexture = CreateScope<DX11RenderTexture>(this, swapchainDesc.BufferDesc.Width, swapchainDesc.BufferDesc.Height, true, "SwapChain");
 		m_DXViewport = {
 			0.0f, 0.0f,
 			(float)swapchainDesc.BufferDesc.Width, (float)swapchainDesc.BufferDesc.Height,

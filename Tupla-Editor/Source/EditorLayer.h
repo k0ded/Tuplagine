@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Assets.h"
 #include "Tupla/Core/Layer.h"
 
 namespace Tupla
@@ -10,5 +11,8 @@ namespace Tupla
         void OnGUI() override;
 
         void OnDetach() override;
+
+    private:
+        Assets m_Assets;
     };
 }

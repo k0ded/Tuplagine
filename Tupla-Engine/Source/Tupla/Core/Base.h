@@ -1,9 +1,11 @@
 #pragma once
 #define NOMINMAX
+#define _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING
 
 #include <memory>
 #include <CommonUtilities/g_types.h>
 #include "Tupla/Utils/Hashing.h"
+#include "Tupla/Core/Log.h"
 #include <combaseapi.h>
 #include <format>
 #include <set>
