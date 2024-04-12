@@ -2,6 +2,7 @@
 #include <stack>
 
 #include "Tupla/Core/Base.h"
+#include "Commands/EditorCommand.h"
 
 namespace Tupla
 {

@@ -119,6 +119,35 @@ namespace CommonUtilities
         return myMouse;
     }
 
+    void InputHandler::ConfineCursor(const Recti& aRectangle)
+    {
+	    if (aRectangle.size == Vector2{ 0, 0 })
+	    {
+		    ClipCursor(NULL);
+	    }
+	    else
+	    {
+		    RECT rect;
+		    rect.left = aRectangle.x;
+		    rect.top = aRectangle.y;
+		    rect.bottom = aRectangle.Top();
+		    rect.right = aRectangle.Right();
+		    ClipCursor(&rect);
+	    }
+    }
+
+    void InputHandler::SetCursorVisible(bool aVisible)
+    {
+	    if (aVisible)
+	    {
+		    while (ShowCursor(true) < 0);
+	    }
+	    else
+	    {
+		    while (ShowCursor(false) >= 0);
+	    }
+    }
+
     void InputHandler::UpdateMouse(const UINT& aMessage, const WPARAM& aWParam, const LPARAM& aLParam)
     {
         switch (aMessage)

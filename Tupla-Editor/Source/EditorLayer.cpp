@@ -28,6 +28,13 @@ void Tupla::EditorLayer::OnGUI()
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0, 0 });
 	ImGui::Begin("Scene");
+
+	if(ImGui::IsWindowHovered())
+	{
+		// Do camera movement!
+
+	}
+
 	auto wSize = ImGui::GetContentRegionAvail();
 	// Queues viewport image resize
 	void* imguiImage = Application::Get().GetRenderer()->GetViewportImage({ static_cast<unsigned>(wSize.x), static_cast<unsigned>(wSize.y) });

@@ -4,6 +4,7 @@
 
 #include "KeyCode.h"
 #include "Mouse.h"
+#include "../Math/Rect.hpp"
 
 namespace CommonUtilities
 {
@@ -25,6 +26,12 @@ namespace CommonUtilities
         [[nodiscard]] bool GetKeyUp(int aKeyCode) const;
         [[nodiscard]] bool GetKeyUp(KeyCode aKeyCode) const;
         [[nodiscard]] Mouse GetMouse() const;
+
+        // Bad interface, might add a variable for window size which needs to be set by the application
+		// so this can just be SetCursorLocked(bool);
+        static void ConfineCursor(const Recti& aRectangle);
+        static void SetCursorVisible(bool aVisible);
+
     private:
         std::bitset<256> myIsUp;
         std::bitset<256> myIsUpFresh;

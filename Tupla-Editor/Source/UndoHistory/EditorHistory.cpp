@@ -1,7 +1,5 @@
 #include "EditorHistory.h"
 
-#include "EditorCommand.h"
-
 void Tupla::EditorHistory::PerformCommand(const Ref<EditorCommand>& editorCommand)
 {
 	editorCommand->Process();
