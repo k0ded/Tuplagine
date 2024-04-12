@@ -42,16 +42,17 @@ void Tupla::DX11Buffer::Unmap()
 	m_MappedMemory = nullptr;
 }
 
-void Tupla::DX11Buffer::WriteToBuffer(const void* data, u64 size, u64 offset)
+bool Tupla::DX11Buffer::WriteToBuffer(const void* data, u64 size, u64 offset)
 {
 	ASSERT(size + offset <= m_Size, "Cannot write past buffers end");
 
 	if (!Map()) 
 	{
 		LOG_ERROR("Failed to map memory when writing to buffer");
-		return;
+		return false;
 	}
 
 	memcpy((char*)m_MappedMemory + offset, data, size);
 	Unmap();
+	return true;
 }

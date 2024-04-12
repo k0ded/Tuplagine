@@ -44,6 +44,7 @@ namespace Tupla
         [[nodiscard]] u32 GetVertexCount() const { return m_VertexCount; }
         [[nodiscard]] u32 GetIndexCount() const { return m_IndexCount; }
         [[nodiscard]] u32 GetTriCount() const { return m_IndexCount / 3; }
+        [[nodiscard]] bool IsLoaded() const { return m_Loaded.load(); }
 
         bool m_IsSkinned;
         int m_SubMesh;
@@ -53,5 +54,6 @@ namespace Tupla
     protected:
         u32 m_VertexCount {};
         u32 m_IndexCount {};
+        std::atomic_bool m_Loaded = false;
     };
 }

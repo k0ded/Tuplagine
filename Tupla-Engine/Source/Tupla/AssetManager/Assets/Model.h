@@ -1,7 +1,5 @@
 ﻿#pragma once
 #include "Asset.h"
-#include "Tupla/AssetManager/RawFileSerializer/FBXSerializer.h"
-#include "Tupla/AssetManager/RawFileSerializer/IModelSerializer.h"
 #include "Tupla/Renderer/Material.h"
 #include "Tupla/Renderer/Mesh.h"
 
@@ -19,11 +17,5 @@ namespace Tupla
 		void SerializeAssetPacked(std::vector<std::byte>& outResult) override;
 
 		std::vector<Ref<Mesh>> m_Meshes {};
-
-	private:
-		static inline std::unordered_map<u64, IModelSerializer*> serializers =
-		{
-			{ HASH_STR(".fbx"), new FBXSerializer() }
-		};
 	};
 }

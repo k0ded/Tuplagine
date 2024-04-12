@@ -71,7 +71,7 @@ namespace CommonUtilities
         Vector3<T> GetScale() const;
 
         // Returns whether or not the decomposition was successful
-        bool DecomposeTransform(Vector3<T>& aTranslation, Vector3<T>& aRotation, Vector3<T>& aScale) const;
+        bool DecomposeTransform(Vector3<T>& aTranslation, Vector3<T>& aRotationRads, Vector3<T>& aScale) const;
         
         void SetPosition(Vector3<T> aPosition);
         void SetRotation(Vector3<T> aRotationInRads);
@@ -84,12 +84,13 @@ namespace CommonUtilities
         // Is detailed in the second matrix lecture
         Matrix4x4 GetFastInverse() const;
         
-        // Static functions for creating rotation matrices.
+        // Static functions.
+        static Matrix4x4 ComposeMatrix(const Vector3<T>& aTranslation, const Vector3<T>& aRotationRads, const Vector3<T>& aScale);
         static Matrix4x4 CreateRotationAroundX(T aAngleInRadians);
         static Matrix4x4 CreateRotationAroundY(T aAngleInRadians);
         static Matrix4x4 CreateRotationAroundZ(T aAngleInRadians);
         static Matrix4x4 CreateRotation(Vector3<T> aAngleInRadians);
-        static Matrix4x4<T> CreatePerspectiveProjection(float aAspect, float aHorizontalFov, float aFar, float aNear);
+        static Matrix4x4 CreatePerspectiveProjection(float aAspect, float aHorizontalFov, float aFar, float aNear);
     };
 
     template <typename T>
@@ -483,7 +484,7 @@ namespace CommonUtilities
     }
 
     template <typename T>
-    bool Matrix4x4<T>::DecomposeTransform(Vector3<T>& aTranslation, Vector3<T>& aRotation, Vector3<T>& aScale) const
+    bool Matrix4x4<T>::DecomposeTransform(Vector3<T>& aTranslation, Vector3<T>& aRotationRads, Vector3<T>& aScale) const
     {
         using namespace Nerd;
         Matrix4x4 localMatrix = *this;
@@ -537,14 +538,14 @@ namespace CommonUtilities
         }
     #endif
 
-        aRotation.y = asin(-Row[0][2]);
-        if (cos(aRotation.y) != 0) {
-            aRotation.x = atan2(Row[1][2], Row[2][2]);
-            aRotation.z = atan2(Row[0][1], Row[0][0]);
+        aRotationRads.y = asin(-Row[0][2]);
+        if (cos(aRotationRads.y) != 0) {
+            aRotationRads.x = atan2(Row[1][2], Row[2][2]);
+            aRotationRads.z = atan2(Row[0][1], Row[0][0]);
         }
         else {
-            aRotation.x = atan2(-Row[2][0], Row[1][1]);
-            aRotation.z = 0;
+            aRotationRads.x = atan2(-Row[2][0], Row[1][1]);
+            aRotationRads.z = 0;
         }
 
 
@@ -570,13 +571,9 @@ namespace CommonUtilities
     template <typename T>
     void Matrix4x4<T>::SetScale(Vector3<T> aScale)
     {
-        VectorArray[0].Normalize();
-        VectorArray[1].Normalize();
-        VectorArray[2].Normalize();
-        
-        VectorArray[0] *= aScale.x;
-        VectorArray[1] *= aScale.y;
-        VectorArray[2] *= aScale.z;
+        VectorArray[0] = aScale.x;
+        VectorArray[1] = aScale.y;
+        VectorArray[2] = aScale.z;
     }
 
     template <typename T>
@@ -639,14 +636,31 @@ namespace CommonUtilities
     }
 
     template <typename T>
+    Matrix4x4<T> Matrix4x4<T>::ComposeMatrix(const Vector3<T>& aTranslation, const Vector3<T>& aRotationRads, const Vector3<T>& aScale)
+    {
+    	Matrix4x4 result = CreateRotation(aRotationRads);
+
+        // Just scales the rotation vectors (Think of it as multiplying each of the different directional vectors with the scale!)
+        result[0] *= aScale.ToVec4();
+        result[1] *= aScale.ToVec4();
+        result[2] *= aScale.ToVec4();
+
+        // Position isn't affected by the other factors
+        result[3] = aTranslation.ToVec4(1);
+        return result;
+    }
+
+    template <typename T>
     Matrix4x4<T> Matrix4x4<T>::CreateRotationAroundX(const T aAngleInRadians)
     {
+        T c = std::cos(aAngleInRadians);
+        T s = std::sin(aAngleInRadians);
         return Matrix4x4(
             std::array<T, 16>{
-                1, 0, 0, 0,
-                0, std::cos(aAngleInRadians), std::sin(aAngleInRadians), 0,
-                0, -std::sin(aAngleInRadians), std::cos(aAngleInRadians), 0,
-                0, 0, 0, 1
+                1,  0, 0, 0,
+                0,  c, s, 0,
+                0, -s, c, 0,
+                0,  0, 0, 1
             }
         );
     }
@@ -654,12 +668,14 @@ namespace CommonUtilities
     template <typename T>
     Matrix4x4<T> Matrix4x4<T>::CreateRotationAroundY(const T aAngleInRadians)
     {
+        T c = std::cos(aAngleInRadians);
+        T s = std::sin(aAngleInRadians);
         return Matrix4x4(
             std::array<T, 16>{
-                std::cos(aAngleInRadians), 0, -std::sin(aAngleInRadians), 0,
-                0, 1, 0, 0,
-                std::sin(aAngleInRadians), 0, std::cos(aAngleInRadians), 0,
-                0, 0, 0, 1
+                c, 0, -s, 0,
+                0, 1,  0, 0,
+                s, 0,  c, 0,
+                0, 0,  0, 1
             }
         );
     }
@@ -667,12 +683,14 @@ namespace CommonUtilities
     template <typename T>
     Matrix4x4<T> Matrix4x4<T>::CreateRotationAroundZ(const T aAngleInRadians)
     {
+        T c = std::cos(aAngleInRadians);
+        T s = std::sin(aAngleInRadians);
         return Matrix4x4(
             std::array<T, 16>{
-                std::cos(aAngleInRadians), std::sin(aAngleInRadians), 0, 0,
-                -std::sin(aAngleInRadians), std::cos(aAngleInRadians), 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
+                c , s, 0, 0,
+                -s, c, 0, 0,
+                0 , 0, 1, 0,
+                0 , 0, 0, 1
             }
         );
     }
@@ -686,7 +704,8 @@ namespace CommonUtilities
     template <typename T>
     Matrix4x4<T> Matrix4x4<T>::CreatePerspectiveProjection(const float aAspect, const float aHorizontalFovRad, const float aFar, const float aNear)
     {
-	    const float zoomX = 1 / tan(aHorizontalFovRad * 0.5f);
+        constexpr T half = T(1) / T(2);
+	    const float zoomX = 1 / tan(aHorizontalFovRad * half);
         const float farVal = aFar / (aFar - aNear);
 
         return Matrix4x4(

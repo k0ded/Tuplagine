@@ -2,9 +2,14 @@
 #include "Model.h"
 
 #include "CommonUtilities/File.h"
-#include "openfbx/ofbx.h"
 #include "Tupla/Core/Application.h"
 #include "Tupla/Utils/StringUtils.h"
+#include "Tupla/AssetManager/RawFileSerializer/FBXSerializer.h"
+
+static std::unordered_map<u64, Tupla::IModelSerializer*> serializers =
+{
+	{ HASH_STR(".fbx"), new Tupla::FBXSerializer() }
+};
 
 void Tupla::Model::DeserializeAsset(const std::string& aFilePath)
 {

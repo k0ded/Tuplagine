@@ -19,7 +19,7 @@ namespace Tupla
         
         m_AssetManager = CreateScope<AssetManager>();
         m_Renderer = CreateScope<DX11Renderer>();
-        m_Renderer->StartWindow({ m_Specification.ApplicationName });
+        m_Renderer->StartWindow(m_Specification.WindowProperties);
         m_Renderer->Init();
 
         if (!m_Specification.WorkingDirectory.empty())

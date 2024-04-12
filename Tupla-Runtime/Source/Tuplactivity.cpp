@@ -16,7 +16,7 @@ namespace Tupla
     Application* CreateApplication(const ApplicationCommandLineArgs args)
     {
         Tupla::ApplicationSpecification spec;
-        spec.ApplicationName = L"Tuplitor - Game";
+        spec.WindowProperties.Title = L"Tuplitor - Game";
         spec.CommandLineArgs = args;
         spec.ApplicationDirectory = args.Args[0];
 

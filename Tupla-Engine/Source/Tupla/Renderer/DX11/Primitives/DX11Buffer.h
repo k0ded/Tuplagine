@@ -19,7 +19,7 @@ namespace Tupla {
 		bool Map() override;
 		void Unmap() override;
 
-		void WriteToBuffer(const void* data, u64 size, u64 offset) override;
+		bool WriteToBuffer(const void* data, u64 size, u64 offset) override;
 
 	private:
 		DX11Renderer* m_Renderer;

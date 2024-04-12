@@ -15,7 +15,7 @@ namespace Tupla
         CU::Vector3f LightVector;
     };
 
-    struct CameraData
+    struct PerFrame
     {
         CU::Matrix4x4<float> worldToClip;
         CU::Matrix4x4<float> worldToCamera;
@@ -25,6 +25,13 @@ namespace Tupla
     {
         ShaderStage Stage;
         Ref<Buffer> ConstBuffer;
+    };
+
+    enum class VertexBufferType : u64 // DONT FORGET TO UPDATE the DX11Material constructor if you change anything here!
+    {
+        PerObject,
+        PerFrame,
+        Count
     };
 
     class Material
@@ -38,5 +45,13 @@ namespace Tupla
         virtual Ref<Buffer> GetBuffer(size_t slot, ShaderStageSlot stage) = 0;
         virtual bool BindMaterial() const = 0;
         virtual u64 GetId() const = 0;
+
+        static Ref<Buffer> GetGlobalBuffer(size_t slot, ShaderStageSlot stage)
+        {
+            return globalBuffers[static_cast<size_t>(stage)][slot];
+        }
+
+    protected:
+        static inline std::array<std::vector<Ref<Buffer>>, static_cast<u64>(ShaderStageSlot::Count)> globalBuffers{};
     };
 }

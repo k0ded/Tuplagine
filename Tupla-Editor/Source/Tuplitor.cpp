@@ -27,12 +27,18 @@ namespace Tupla
     Application* CreateApplication(const ApplicationCommandLineArgs args)
     {
         ApplicationSpecification spec;
-        spec.ApplicationName = L"Tuplitor - Japp";
+        spec.WindowProperties.Title = L"Tuplitor - Japp";
+        spec.WindowProperties.Position = WindowPosition::Center;
         spec.CommandLineArgs = args;
 
         if(args.Count > 1)
         {
             spec.WorkingDirectory = args.Args[1];
+        }
+        else
+        {
+            spec.WindowProperties.Width = 900;
+            spec.WindowProperties.Height = 600;
         }
 
         return new Tuplitor(spec);

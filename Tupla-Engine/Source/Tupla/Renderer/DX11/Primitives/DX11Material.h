@@ -24,6 +24,8 @@ namespace Tupla
 		bool BindMaterial() const override;
 		u64 GetId() const override;
 
+		static void SetGlobalBuffers(std::vector<Ref<Buffer>>&& aBuffers, ShaderStageSlot aSlot);
+
 	private:
 		DX11Renderer* m_Renderer;
 		u64 m_Id;

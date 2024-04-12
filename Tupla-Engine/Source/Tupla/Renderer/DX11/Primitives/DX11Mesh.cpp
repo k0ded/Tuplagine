@@ -26,7 +26,13 @@ void Tupla::DX11Mesh::CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>
     D3D11_SUBRESOURCE_DATA vertexbufferSRD = { vertices.data() };
 
     auto result = m_Renderer->GetDevice()->CreateBuffer(&vertexbufferdesc, &vertexbufferSRD, &m_VertexBuffer);
-    ASSERT(SUCCEEDED(result), "Failed to create vertex buffer");
+
+    if(FAILED(result))
+    {
+        LOG_ERROR("Failed to create vertex buffer!");
+        return;
+    }
+
     DX11Renderer::SetObjectName(m_VertexBuffer.Get(), (debugName + "_VB").c_str());
 
     if (indices.empty()) return;
@@ -39,8 +45,15 @@ void Tupla::DX11Mesh::CreateMesh(std::vector<Vertex>& vertices, std::vector<u32>
     D3D11_SUBRESOURCE_DATA indexbufferSRD = { indices.data() };
 
     result = m_Renderer->GetDevice()->CreateBuffer(&indexbufferdesc, &indexbufferSRD, &m_IndexBuffer);
-    ASSERT(SUCCEEDED(result), "Failed to create index buffer");
+
+	if (FAILED(result))
+    {
+        LOG_ERROR("Failed to create index buffer!");
+        return;
+    }
+
     DX11Renderer::SetObjectName(m_IndexBuffer.Get(), (debugName + "_IB").c_str());
+    m_Loaded = true;
 }
 
 void Tupla::DX11Mesh::CreateMesh(const std::byte* aData, u64 dataSize, const std::string& debugName)

@@ -8,6 +8,7 @@ using namespace Microsoft::WRL;
 
 namespace Tupla
 {
+
 	DX11Material::DX11Material(DX11Renderer* renderer): m_Renderer(renderer)
 	{
 	}
@@ -61,7 +62,11 @@ namespace Tupla
 
 	Ref<Buffer> DX11Material::GetBuffer(const size_t slot, ShaderStageSlot stage)
 	{
-		return m_BuffersCOM[static_cast<u64>(stage)][slot];
+		if(slot < globalBuffers[static_cast<u64>(stage)].size())
+		{
+			return globalBuffers[static_cast<u64>(stage)][slot];
+		}
+		return m_BuffersCOM[static_cast<u64>(stage)][slot - globalBuffers[static_cast<u64>(stage)].size()];
 	}
 
 	bool DX11Material::BindMaterial() const
@@ -80,24 +85,40 @@ namespace Tupla
 
 		auto& vsBuffers = m_Buffers[(u64)ShaderStageSlot::Vertex];
 		dcontext->VSSetShader(vs.Get(), nullptr, 0);
-		dcontext->VSSetConstantBuffers(0, (u32)vsBuffers.size(), vsBuffers.data());
+		dcontext->VSSetConstantBuffers(
+			(u32)globalBuffers[static_cast<u64>(ShaderStageSlot::Vertex)].size(),
+			(u32)vsBuffers.size(), 
+			vsBuffers.data()
+		);
 
 		auto& psBuffers = m_Buffers[(u64)ShaderStageSlot::Pixel];
 		dcontext->PSSetShader(ps.Get(), nullptr, 0);
-		dcontext->PSSetConstantBuffers(0, (u32)psBuffers.size(), psBuffers.data());
+		dcontext->PSSetConstantBuffers(
+			(u32)globalBuffers[static_cast<u64>(ShaderStageSlot::Pixel)].size(),
+			(u32)psBuffers.size(), 
+			psBuffers.data()
+		);
 
 		// Tesselation!
 
 		auto& hsBuffers = m_Buffers[(u64)ShaderStageSlot::Hull];
 		auto& dsBuffers = m_Buffers[(u64)ShaderStageSlot::Domain];
-		dcontext->HSSetConstantBuffers(0, (u32)hsBuffers.size(), hsBuffers.data());
-		dcontext->DSSetConstantBuffers(0, (u32)dsBuffers.size(), dsBuffers.data());
+		dcontext->HSSetConstantBuffers(
+			(u32)globalBuffers[static_cast<u64>(ShaderStageSlot::Hull)].size(),
+			(u32)hsBuffers.size(), 
+			hsBuffers.data()
+		);
+		dcontext->DSSetConstantBuffers(
+			(u32)globalBuffers[static_cast<u64>(ShaderStageSlot::Domain)].size(),
+			(u32)dsBuffers.size(), 
+			dsBuffers.data()
+		);
 
 		std::vector<ID3D11ShaderResourceView*> views(m_AttachedTextures.size());
 
 		for (int i = 0; i < views.size(); ++i)
 		{
-			views[i] = (ID3D11ShaderResourceView*)m_AttachedTextures[i]->ImGuiRID();
+			views[i] = (ID3D11ShaderResourceView*)m_AttachedTextures[i]->ImGuiRID(); // This is the SRV
 		}
 
 		dcontext->PSSetShaderResources(0, static_cast<u32>(views.size()), views.data());
@@ -109,5 +130,10 @@ namespace Tupla
 	u64 DX11Material::GetId() const
 	{
 		return m_Id;
+	}
+
+	void DX11Material::SetGlobalBuffers(std::vector<Ref<Buffer>>&& aBuffers, ShaderStageSlot aSlot)
+	{
+		globalBuffers[static_cast<u64>(aSlot)] = aBuffers;
 	}
 }

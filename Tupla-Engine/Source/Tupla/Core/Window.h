@@ -4,11 +4,26 @@
 
 namespace Tupla
 {
+    enum class WindowPosition
+    {
+        TopLeft,
+        TopRight,
+        TopCenter,
+        BottomLeft,
+        BottomRight,
+        BottomCenter,
+
+        CenterLeft,
+        CenterRight,
+	    Center,
+    };
+
     struct WindowProps
     {
         std::wstring Title;
         u32 Width;
         u32 Height;
+        WindowPosition Position = WindowPosition::Center;
 
         WindowProps(std::wstring title,
                     uint32_t width = 1600,

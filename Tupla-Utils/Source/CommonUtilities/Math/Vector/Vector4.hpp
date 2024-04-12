@@ -248,6 +248,12 @@ namespace CommonUtilities
         aVector = aVector * aScalar;
     }
 
+    template <class T>
+    void operator*=(Vector4<T>& aVector, const Vector4<T>& aVector2)
+    {
+        aVector = aVector * aVector2;
+    }
+
     //Equivalent to setting aVector to (aVector / aScalar)
     template <class T>
     void operator/=(Vector4<T>& aVector, const T& aScalar)

@@ -47,6 +47,7 @@ namespace Tupla
 		}
 
 		DX11Renderer::SetObjectName(m_TextureSRV.Get(), (debugName + "_SRV").c_str());
+		m_Loaded = true;
 
 		return true;
 	}

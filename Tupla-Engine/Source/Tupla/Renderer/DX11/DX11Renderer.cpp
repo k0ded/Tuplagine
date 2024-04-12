@@ -10,6 +10,7 @@
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_internal.h"
+#include "Primitives/DX11Material.h"
 #include "Tupla/Utils/StringUtils.h"
 
 #pragma comment(lib, "user32")
@@ -34,6 +35,23 @@ namespace Tupla
         CreateFrameBuffer();
         CreateDepthBuffer();
         CreateStates();
+
+
+        std::vector<Ref<Buffer>> globalVertexBuffers = {
+            m_RenderingAssets->CreateBuffer(sizeof(PerObject)),
+            m_RenderingAssets->CreateBuffer(sizeof(PerFrame)),
+        };
+
+        for (u64 i = 0; i < globalVertexBuffers.size(); ++i)
+        {
+            m_Context->VSSetConstantBuffers(
+                static_cast<u32>(i),
+                1,
+                globalVertexBuffers[i]->GetGPUMemory().GetAddressOf()
+            );
+        }
+
+        DX11Material::SetGlobalBuffers(std::move(globalVertexBuffers), ShaderStageSlot::Vertex);
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
