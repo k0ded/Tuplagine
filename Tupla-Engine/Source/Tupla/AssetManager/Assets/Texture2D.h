@@ -7,7 +7,7 @@ namespace Tupla
     class Texture2D final : public Asset
     {
     public:
-        explicit Texture2D(const u64 aId): Asset(aId) {}
+        explicit Texture2D(const u64 aId, bool sRGB = true): Asset(aId), m_sRGB(sRGB) {}
 
         operator Ref<Texture>() { return m_Texture; }
 
@@ -17,7 +17,8 @@ namespace Tupla
         void DeserializeAssetPacked(const std::byte* data, u64 dataSize) override;
         void SerializeAssetPacked(std::vector<std::byte>& outResult) override;
 
-    private:
         Ref<Texture> m_Texture;
+    private:
+        bool m_sRGB;
     };
 }

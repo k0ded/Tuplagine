@@ -149,17 +149,6 @@ namespace CommonUtilities
 		}
 	};
 
-	inline void from_json(const nlohmann::json& aJson, Rectangle<float>& aRectangle)
-	{
-		const float minX = aJson["xMin"];
-		const float maxX = aJson["xMax"];
-		const float minY = aJson["yMin"];
-		const float maxY = aJson["yMax"];
-		
-		aRectangle.size = { maxX - minX, maxY - minY };
-		aRectangle.position = { minX, minY };
-	}
-
 	using Recti = Rectangle<int>;
 	using Rectf = Rectangle<float>;
 }

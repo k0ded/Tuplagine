@@ -1,9 +1,11 @@
 ﻿#include "RuntimeLayer.h"
 
+#include "../../Tupla-Engine/vendor/External/imgui/imgui.h"
 #include "CommonUtilities/Input/Input.h"
 #include "CommonUtilities/Time/Time.h"
 #include "Tupla/Core/Application.h"
 #include "Tupla/AssetManager/Assets/Model.h"
+#include "Tupla/AssetManager/Assets/Texture2D.h"
 #include "Tupla/Scene/SceneManager.h"
 
 Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
@@ -15,17 +17,19 @@ Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 	//m_Mesh = Application::Get().GetRenderer()->GetRenderingAssets()->CreateMesh();
 	m_Material = Application::Get().GetRenderer()->GetRenderingAssets()->CreateMaterial();
 
-	Ref<Shader> shader = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader();
-	shader->CompileShader(L"./gpu.hlsl", ShaderStage::Vertex);
-	shader->CompileShader(L"./gpu.hlsl", ShaderStage::Pixel);
+	m_Shader = Application::Get().GetRenderer()->GetRenderingAssets()->CreateShader();
+	m_Shader->CompileShader(L"./gpu.hlsl", ShaderStage::Vertex);
+	m_Shader->CompileShader(L"./gpu.hlsl", ShaderStage::Pixel);
 
 	m_Camera.SetFOV(90);
 	m_Camera.SetFarPlane(1000.f);
 	m_Camera.SetNearPlane(0.1f);
-	// TEMP
-	m_Texture = Application::Get().GetRenderer()->GetRenderingAssets()->CreateTexture();
-	m_Material->SetShader(shader);
+	// TEMP 
+	m_Texture = Application::Get().GetAssetManager().GetAssetFromFile<Texture2D>("t_coloratlas.png")->m_Texture;
+	m_NormalTexture = Application::Get().GetAssetManager().GetAssetFromFile<Texture2D>("normal_mapping_normal_map.png", false)->m_Texture;
+	m_Material->SetShader(m_Shader);
 	m_Material->AttachImage(m_Texture);
+	m_Material->AttachImage(m_NormalTexture);
 
 	m_ConstantBuffer = m_Material->GetBuffer(static_cast<size_t>(VertexBufferType::PerObject), ShaderStageSlot::Vertex);
 
@@ -71,6 +75,12 @@ void Tupla::RuntimeLayer::OnUpdate()
 
 		m_CameraPosition = pos;
 		m_CameraRotation += rotationDifference;
+	}
+
+	if(Input::GetKeyDown(CU::KeyCode::R))
+	{
+		m_Shader->CompileShader(L"./gpu.hlsl", ShaderStage::Vertex);
+		m_Shader->CompileShader(L"./gpu.hlsl", ShaderStage::Pixel);
 	}
 
 	m_Camera.SetPosition(m_CameraPosition);

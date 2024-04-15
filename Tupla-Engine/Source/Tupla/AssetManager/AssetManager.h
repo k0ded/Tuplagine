@@ -58,8 +58,8 @@ namespace Tupla
             return GetOrLoadAsset<T>(aId);
         }
         
-        template <typename T> requires(std::is_base_of_v<Asset, T>)
-        std::shared_ptr<T> GetAssetFromFile(const std::string& aFile)
+        template <typename T, typename ...Args> requires(std::is_base_of_v<Asset, T>)
+        std::shared_ptr<T> GetAssetFromFile(const std::string& aFile, const Args&... args)
         {
             auto hash = HASH_RUNTIME_STR(aFile.c_str());
 
@@ -79,7 +79,7 @@ namespace Tupla
         		LOG_INFO("Changes found in {}, Reimporting!", aFile.c_str());
         	}
 
-            return GetOrLoadAsset<T>(hash);
+            return GetOrLoadAsset<T, Args...>(hash, args...);
         }
 
         bool TryInvalidate(const std::string& aFile)
@@ -116,8 +116,8 @@ namespace Tupla
         void BuildVirtualMap();
 
     private:
-        template <typename T> requires(std::is_base_of_v<Asset, T>)
-        std::shared_ptr<T> GetOrLoadAsset(u64 aId)
+        template <typename T, typename ...Args> requires(std::is_base_of_v<Asset, T>)
+        std::shared_ptr<T> GetOrLoadAsset(u64 aId, const Args&... args)
         {
             // These are the most likely to hit so try them first!
             if (m_TemporaryAssetCache.contains(aId))
@@ -139,7 +139,7 @@ namespace Tupla
                 throw std::exception("Accessing an asset that doesn't exist!");
             }
 
-            auto asset = std::make_shared<T>(aId);
+            auto asset = std::make_shared<T>(aId, args...);
 
             if(!m_VirtualToPhysicalMap[aId].IsPacked && !m_ReadPackedAssets)
             {
@@ -157,8 +157,7 @@ namespace Tupla
             		m_VirtualToPhysicalMap[aId].Size = data.size();
             	}
             }
-
-            if(m_VirtualToPhysicalMap[aId].IsPacked && !m_ReadPackedAssets)
+        	else if(m_VirtualToPhysicalMap[aId].IsPacked && !m_ReadPackedAssets)
             {
                 const auto& [Offset, Size, PhysicalFilePath, isPacked] = m_VirtualToPhysicalMap[aId];
 

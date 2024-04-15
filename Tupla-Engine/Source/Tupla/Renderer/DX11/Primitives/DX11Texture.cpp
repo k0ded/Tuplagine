@@ -12,7 +12,7 @@ namespace Tupla
 
 	DX11Texture::~DX11Texture() = default;
 
-	bool DX11Texture::SetImageData(void* imageData, const u32 texWidth, const u32 texHeight, const std::string& debugName)
+	bool DX11Texture::SetImageData(void* imageData, const u32 texWidth, const u32 texHeight, bool sRGB, const std::string& debugName)
 	{
 		m_Width = texWidth;
 		m_Height = texHeight;
@@ -22,7 +22,16 @@ namespace Tupla
 		textureDesc.Height = texHeight;
 		textureDesc.MipLevels = 1;
 		textureDesc.ArraySize = 1;
-		textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB; // Same as framebuffer(view)
+
+		if(sRGB)
+		{
+			textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;	
+		}
+		else
+		{
+			textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		}
+
 		textureDesc.SampleDesc.Count = 1;
 		textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
 		textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -68,16 +77,30 @@ namespace Tupla
 		m_Texture->GetDesc(&textureDesc);
 
 		textureDesc.Usage = D3D11_USAGE_STAGING;
+		textureDesc.BindFlags = 0;
 		textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 
-		m_Renderer->GetDevice()->CreateTexture2D(&textureDesc, nullptr, &staging);
+		HRESULT result = m_Renderer->GetDevice()->CreateTexture2D(&textureDesc, nullptr, &staging);
+
+		if(FAILED(result))
+		{
+			LOG_ERROR("Failed to create staging texture!");
+			return;
+		}
+
 		m_Renderer->GetDeviceContext()->CopyResource(staging, m_Texture.Get());
 
 		memcpy(&data[0], &m_Width, sizeof(u16));
 		memcpy(&data[2], &m_Height, sizeof(u16));
 
 		D3D11_MAPPED_SUBRESOURCE resource;
-		m_Renderer->GetDeviceContext()->Map(staging, 0, D3D11_MAP_READ, 0, &resource);
+		result = m_Renderer->GetDeviceContext()->Map(staging, 0, D3D11_MAP_READ, 0, &resource);
+
+		if(FAILED(result))
+		{
+			LOG_ERROR("Failed to map staging buffer!");
+			return;
+		}
 
 		if(resource.pData)
 		{

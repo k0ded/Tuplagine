@@ -157,31 +157,23 @@ void Tupla::AssetManager::SaveVirtualMap()
 	size_t byteSize = 3 + 8 + 4 + 4;
 	byteSize += m_VirtualToPhysicalMap.size() * ASSET_SIZE;
 
-	std::set<std::string> strings{};
+	std::vector<std::string> strings{};
 	std::unordered_map<u64, u64> idToPhysicalIndex{};
 
 	for (auto& [id, entry] : m_VirtualToPhysicalMap)
 	{
-		const auto result = strings.insert(entry.PhysicalFilePath);
+		auto found = std::ranges::find(strings, entry.PhysicalFilePath);
 
-		if(result.second)
+		if(found == strings.end())
 		{
+			strings.push_back(entry.PhysicalFilePath);
 			byteSize += 4; // Forgot the size specifier oopsie
 			byteSize += entry.PhysicalFilePath.size() + 1; // We cannot forget the null terminator!
 			idToPhysicalIndex[id] = strings.size() - 1;
 		}
 		else 
 		{
-			int indexCounter = 0;
-			for (auto& p : strings)
-			{
-				if (p == entry.PhysicalFilePath) 
-				{
-					idToPhysicalIndex[id] = indexCounter;
-					break;
-				}
-				indexCounter++;
-			}
+			idToPhysicalIndex[id] = found - strings.begin();
 		}
 	}
 

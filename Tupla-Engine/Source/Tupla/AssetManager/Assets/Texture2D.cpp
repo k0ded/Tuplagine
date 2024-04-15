@@ -1,6 +1,7 @@
 ﻿#include "tgpch.h"
 #include "Texture2D.h"
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 #include "Tupla/Core/Application.h"
 
@@ -14,11 +15,18 @@ namespace Tupla
 
         if(!pixels)
         {
-            throw std::runtime_error("Failed to load texture image!");
+            LOG_ERROR("Failed to load pixels");
+            return;
+        }
+
+
+        for (int i = 0; i < texWidth * texHeight; ++i)
+        {
+            std::swap(pixels[i * 4], pixels[i * 4 + 2]);
         }
 
         m_Texture = Application::Get().GetRenderer()->GetRenderingAssets()->CreateTexture();
-        m_Texture->SetImageData(pixels, texWidth, texHeight);
+        m_Texture->SetImageData(pixels, texWidth, texHeight, m_sRGB, aFilePath);
         stbi_image_free(pixels);
     }
 
@@ -53,6 +61,7 @@ namespace Tupla
         }
 
     	// Image data after this block
+        m_Texture = Application::Get().GetRenderer()->GetRenderingAssets()->CreateTexture();
         m_Texture->SetImageData((void*)&data[4], width, height);
     }
 

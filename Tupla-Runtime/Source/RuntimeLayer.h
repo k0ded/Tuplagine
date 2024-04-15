@@ -16,9 +16,11 @@ namespace Tupla
         void OnUpdate() override;
 
     private:
+        Ref<Shader> m_Shader;
         Ref<Model> m_Mesh;
         Ref<Material> m_Material;
         Ref<Texture> m_Texture;
+        Ref<Texture> m_NormalTexture;
         Ref<Buffer> m_ConstantBuffer;
 
         CU::Matrix4x4<float> m_Transform;

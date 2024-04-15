@@ -9,7 +9,7 @@ namespace Tupla
 		DX11RenderTexture(DX11Renderer* renderer, u32 width, u32 height, bool usesDepth = false, const std::string& aName = "GenericRenderTexture");
 		~DX11RenderTexture() override;
 
-		bool SetImageData(void* imageData, u32 texWidth, u32 texHeight, const std::string& debugName) override { return false; }
+		bool SetImageData(void* imageData, u32 texWidth, u32 texHeight, bool sRGB, const std::string& debugName) override { return false; }
 
 		void Clear(const CU::Vector4f& clearColor) const;
 

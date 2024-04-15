@@ -107,16 +107,17 @@ void Tupla::FBXSerializer::GatherMeshes()
 					u32 tri_count = ofbx::triangulate(geom, polygon, reinterpret_cast<i32*>(indices.data()));
 
 					for (u32 i = 0; i < tri_count; ++i) {
-						ofbx::Vec3 cp = positions.get(indices[i]);
-						//pos = fixOrientation(pos); TODO: Fix orientation for wrong UP vectors!
-						vertices[indices[i]].Position = (static_cast<CU::Vector3f>(cp).ToVec4(1) * matrix * (settings.meshScale * m_FBXScale)).ToVec3();;
+						ofbx::Vec3 pos = positions.get(indices[i]);
+						//pos = FixOrientation(pos); // TODO: Fix orientation for wrong UP vectors!
+						vertices[indices[i]].Position = (static_cast<CU::Vector3f>(pos).ToVec4(1) * matrix * (settings.meshScale * m_FBXScale)).ToVec3();;
 
 						if (normals.values) {
 							vertices[indices[i]].Normal = (static_cast<CU::Vector3f>(normals.get(indices[i])).ToVec4(1) * matrix).ToVec3(); // TODO: FIX ORIENTATION HERE TOO
 						}
 
 						if (uvs.values) {
-							vertices[indices[i]].UV = uvs.get(indices[i]);
+							auto [x, y] = uvs.get(indices[i]);
+							vertices[indices[i]].UV = { x, 1 - y }; // THIS REMAPS THE UV COORDINATES TO WHAT WE'RE USED TO.
 						}
 
 						if (colors.values && settings.importVertexColors) {

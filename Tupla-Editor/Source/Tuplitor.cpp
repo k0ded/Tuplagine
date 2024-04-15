@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <Tupla.h>
 
 #include "EditorLayer.h"
@@ -30,6 +31,7 @@ namespace Tupla
         spec.WindowProperties.Title = L"Tuplitor - Japp";
         spec.WindowProperties.Position = WindowPosition::Center;
         spec.CommandLineArgs = args;
+        spec.ApplicationDirectory = std::filesystem::path(args.Args[0]).parent_path().string(); // Gets the directory instead of the exe path.
 
         if(args.Count > 1)
         {
