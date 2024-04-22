@@ -267,10 +267,21 @@ namespace CommonUtilities
         return aVector.x == aVector1.x && aVector.y == aVector1.y && aVector.z == aVector1.z && aVector.w == aVector1.w;
     }
 
+    template <class T>
+    Vector4<char> Pack4b(const Vector4<T>& vec) // For packing a vector into a shader that doesn't need the full precision of multiple floats!
+    {
+        const char xx = static_cast<char>(std::clamp((vec.x * T(0.5) + T(0.5)) * 255, T(0), T(255)) - 128);
+        const char yy = static_cast<char>(std::clamp((vec.y * T(0.5) + T(0.5)) * 255, T(0), T(255)) - 128);
+        const char zz = static_cast<char>(std::clamp((vec.z * T(0.5) + T(0.5)) * 255, T(0), T(255)) - 128);
+        const char ww = static_cast<char>(std::clamp((vec.w * T(0.5) + T(0.5)) * 255, T(0), T(255)) - 128);
+        return { xx, yy, zz, ww };
+    }
+
     typedef Vector4<unsigned>   Vector4ui;
+    typedef Vector4<int>        Vector4i;
     typedef Vector4<double>     Vector4d;
     typedef Vector4<float>      Vector4f;
-    typedef Vector4<int>        Vector4i;
+    typedef Vector4<char>  Vector4b;
 }
 
 namespace CU = CommonUtilities;

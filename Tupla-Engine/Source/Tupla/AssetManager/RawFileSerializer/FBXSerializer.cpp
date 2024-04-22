@@ -5,7 +5,10 @@
 
 #include "CommonUtilities/File.h"
 #include "Tupla/Core/Application.h"
-#include "Tupla/Utils/StringUtils.h"
+#include "CommonUtilities/Strings.hpp"
+#include "CommonUtilities/Math/Matrices/Matrix4x4.hpp"
+#include "Tupla/Renderer/Primitives/Mesh.h"
+#include "Tupla/Renderer/Primitives/Vertex.h"
 
 std::vector<Tupla::Ref<Tupla::Mesh>> Tupla::FBXSerializer::SerializeModel(const std::string& aSourcePath)
 {
@@ -36,9 +39,9 @@ std::vector<Tupla::Ref<Tupla::Mesh>> Tupla::FBXSerializer::SerializeModel(const 
 
 	m_FBXScale = m_Scene->getGlobalSettings()->UnitScaleFactor;
 
-	const ofbx::GlobalSettings* settings = m_Scene->getGlobalSettings();
+	const ofbx::GlobalSettings* gSettings = m_Scene->getGlobalSettings();
 
-	switch (settings->OriginalUpAxis)
+	switch (gSettings->OriginalUpAxis)
 	{
 	case ofbx::UpVector_AxisX: m_Orientation = FBXOrientation::X_UP; break;
 	case ofbx::UpVector_AxisY: m_Orientation = FBXOrientation::Y_UP; break;
@@ -47,7 +50,6 @@ std::vector<Tupla::Ref<Tupla::Mesh>> Tupla::FBXSerializer::SerializeModel(const 
 
 	ExtractEmbedded(std::filesystem::path(aSourcePath).parent_path().string());
 	GatherMeshes();
-
 	return m_Meshes;
 }
 
@@ -62,10 +64,10 @@ void Tupla::FBXSerializer::GatherMeshes()
 
 		for (int j = 0; j < materialCount; ++j)
 		{
-			Ref<Mesh> mesh = Application::Get().GetRenderer()->GetRenderingAssets()->CreateMesh();
+			Ref<Mesh> mesh = CreateRef<Mesh>(fbxMesh->name);
 			m_Meshes.push_back(mesh);
 
-			mesh->m_IsSkinned = false;
+			mesh->myIsSkinned = false;
 
 			const ofbx::Skin* skin = fbxMesh->getSkin();
 			if(skin)
@@ -74,15 +76,15 @@ void Tupla::FBXSerializer::GatherMeshes()
 				{
 					if(skin->getCluster(i)->getIndicesCount() > 0)
 					{
-						mesh->m_IsSkinned = true;
+						mesh->myIsSkinned = true;
 						break;
 					}
 				}
 			}
 
 			// TODO: Create a valid material and copy relevant information!
-			mesh->m_SubMesh = materialCount > 1 ? j : -1;
-			mesh->m_LOD = DetectMeshLOD(fbxMesh);
+			mesh->mySubMesh = materialCount > 1 ? j : -1;
+			mesh->myLOD = DetectMeshLOD(fbxMesh);
 
 			const ofbx::GeometryData& geom = fbxMesh->getGeometryData();
 			ofbx::Vec3Attributes positions = geom.getPositions();
@@ -99,6 +101,7 @@ void Tupla::FBXSerializer::GatherMeshes()
 
 			CU::Matrix4x4<float> matrix;
 
+#pragma region triangulation
 			if(!indices.empty())
 			{
 				for (int polygonIdx = 0; polygonIdx < partition.polygon_count; ++polygonIdx)
@@ -108,11 +111,12 @@ void Tupla::FBXSerializer::GatherMeshes()
 
 					for (u32 i = 0; i < tri_count; ++i) {
 						ofbx::Vec3 pos = positions.get(indices[i]);
-						//pos = FixOrientation(pos); // TODO: Fix orientation for wrong UP vectors!
-						vertices[indices[i]].Position = (static_cast<CU::Vector3f>(pos).ToVec4(1) * matrix * (settings.meshScale * m_FBXScale)).ToVec3();;
+						pos = FixOrientation(pos); // TODO: Fix orientation for wrong UP vectors!
+						vertices[indices[i]].Position = (static_cast<CU::Vector3f>(pos).ToVec4(1) * matrix).ToVec3() * (settings.meshScale * m_FBXScale);
 
 						if (normals.values) {
-							vertices[indices[i]].Normal = (static_cast<CU::Vector3f>(normals.get(indices[i])).ToVec4(1) * matrix).ToVec3(); // TODO: FIX ORIENTATION HERE TOO
+							auto norm = FixOrientation((static_cast<CU::Vector3f>(normals.get(indices[i])).ToVec4(1) * matrix).ToVec3().GetNormalized()).ToVec4();
+							vertices[indices[i]].Normal = CU::Pack4b(norm);
 						}
 
 						if (uvs.values) {
@@ -121,17 +125,19 @@ void Tupla::FBXSerializer::GatherMeshes()
 						}
 
 						if (colors.values && settings.importVertexColors) {
-							vertices[indices[i]].Color = colors.get(indices[i]);
+							CU::Vector4f c = colors.get(indices[i]);
+							vertices[indices[i]].Color = CU::Pack4b(c);
 						}
 
 						if (tangents.values)
 						{
-							vertices[indices[i]].Tangent = (static_cast<CU::Vector3f>(tangents.get(indices[i])).ToVec4() * matrix).ToVec3();
+							auto tan = (static_cast<CU::Vector3f>(tangents.get(indices[i])).ToVec4() * matrix).ToVec3().GetNormalized();
+							vertices[indices[i]].Tangent = CU::Pack4b(tan.ToVec4());
 						}
 
 						v.push_back(indices[i]);
 
-						/*if (mesh->m_IsSkinned) { TODO: LATER!
+						/*if (mesh->myIsSkinned) { TODO: LATER!
 							if (positions.indices) {
 								write(skinning[positions.indices[indices[i]]].joints);
 								write(skinning[positions.indices[indices[i]]].weights);
@@ -146,31 +152,35 @@ void Tupla::FBXSerializer::GatherMeshes()
 			}
 			else
 			{
-				for (int i = 0; i < vertices.size(); ++i)
-				{
-					ofbx::Vec3 cp = positions.get(i);
-					CU::Vector3f pos = (static_cast<CU::Vector3f>(cp).ToVec4(1) * matrix * (settings.meshScale * m_FBXScale)).ToVec3();
-					//pos = fixOrientation(pos); TODO: Fix orientation for wrong UP vectors!
-					vertices[i].Position = pos;
+				LOG_ERROR("Importing FBX meshes without indices currently not supported!");
+				m_Meshes.pop_back();
+				continue;
+				//for (int i = 0; i < vertices.size(); ++i)
+				//{
+				//	ofbx::Vec3 cp = positions.get(i);
+				//	CU::Vector3f pos = (static_cast<CU::Vector3f>(cp).ToVec4(1) * matrix * (settings.meshScale * m_FBXScale)).ToVec3();
+				//	pos = FixOrientation(pos);
+				//	vertices[i].Position = pos;
 
-					if (normals.values) {
-						vertices[i].Normal = (static_cast<CU::Vector3f>(normals.get(i)).ToVec4(1) * matrix).ToVec3(); // TODO: FIX ORIENTATION HERE TOO
-					}
+				//	if (normals.values) {
+				//		vertices[i].Normal = FixOrientation((static_cast<CU::Vector3f>(normals.get(i)).ToVec4(1) * matrix).ToVec3()).ToVec4(); // TODO: FIX ORIENTATION HERE TOO
+				//	}
 
-					if (uvs.values) {
-						vertices[i].UV = uvs.get(i);
-					}
+				//	if (uvs.values) {
+				//		vertices[i].UV = uvs.get(i);
+				//	}
 
-					if (colors.values && settings.importVertexColors) {
-						vertices[i].Color = colors.get(i);
-					}
+				//	if (colors.values && settings.importVertexColors) {
+				//		vertices[i].Color = colors.get(i);
+				//	}
 
-					if (tangents.values)
-					{
-						vertices[i].Tangent = (static_cast<CU::Vector3f>(tangents.get(i)).ToVec4() * matrix).ToVec3();
-					}
-				}
+				//	if (tangents.values)
+				//	{
+				//		vertices[i].Tangent = static_cast<CU::Vector3f>(tangents.get(i)).ToVec4() * matrix;
+				//	}
+				//}
 			}
+#pragma endregion
 
 			mesh->CreateMesh(vertices, v);
 		}
@@ -193,7 +203,7 @@ void Tupla::FBXSerializer::ExtractEmbedded(const std::string& srcDirectory)
 int Tupla::FBXSerializer::DetectMeshLOD(const ofbx::Mesh* mesh)
 {
 	const char* nodeName = mesh->name;
-	const char* lod_str = FindInsensitive(mesh->name, "_LOD");
+	const char* lod_str = CU::FindInsensitive(mesh->name, "_LOD");
 
 	if(!lod_str)
 	{
@@ -205,4 +215,17 @@ int Tupla::FBXSerializer::DetectMeshLOD(const ofbx::Mesh* mesh)
 
 	int lod = atoi(lod_str);
 	return lod;
+}
+
+CU::Vector3f Tupla::FBXSerializer::FixOrientation(const CU::Vector3f& vec) const
+{
+	switch (m_Orientation)
+	{
+	case FBXOrientation::Y_UP: return vec;
+	case FBXOrientation::Z_UP: return { vec.x, vec.z, -vec.y };
+	case FBXOrientation::X_UP: return { -vec.y, vec.x, vec.z };
+	}
+
+	LOG_ERROR("Orientation hasn't been implemented!");
+	return {};
 }

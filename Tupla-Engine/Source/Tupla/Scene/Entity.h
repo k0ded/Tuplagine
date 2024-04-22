@@ -1,7 +1,5 @@
 ﻿#pragma once
 #include "Component/IComponent.h"
-#include "Hot/HotCoordinator.h"
-#include "Hot/HotDefines.h"
 
 namespace Tupla
 {
@@ -17,15 +15,6 @@ namespace Tupla
         {
             m_Components.push_back(CreateRef<T>());
         }
-
-        template <typename T> requires(!std::is_base_of_v<IComponent, T>)
-    	void AddComponent(const T& data = T())
-        {
-            m_Coordinator->AddComponent(m_HOT, data);
-#ifdef DEBUG
-            m_HOTComponents.push_back(&m_Coordinator->GetComponent<T>(m_HOT));
-#endif
-        }
         
         template <typename T> requires(std::is_base_of_v<IComponent, T>)
         void RemoveComponent()
@@ -38,12 +27,6 @@ namespace Tupla
                     break;
                 }
             }
-        }
-
-        template <typename T> requires(!std::is_base_of_v<IComponent, T>)
-    	void RemoveComponent()
-        {
-            m_Coordinator.GetComponent<T>(m_HOT);
         }
         
         void RemoveComponent(const GUID aId)
@@ -70,9 +53,7 @@ namespace Tupla
         std::vector<void*> m_HOTComponents;
 #endif
 
-        HOTEntity m_HOT;
         Scene* m_Scene;
-        HotCoordinator* m_Coordinator;
         GUID m_Id {};
     };
 }

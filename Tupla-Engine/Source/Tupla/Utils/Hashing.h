@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <string>
 
 // CRC32 Table (zlib polynomial)
 static constexpr uint64_t crc64_tab[256] = {

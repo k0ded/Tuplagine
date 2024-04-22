@@ -13,15 +13,8 @@ namespace Tupla
     public:
         Tuplitor(const ApplicationSpecification& spec) : Application(spec)
         {
-            if(spec.WorkingDirectory.empty())
-            {
-                PushOverlay(new ProjectSelectionLayer());
-            }
-            else
-            {
-                PushOverlay(new EditorLayer());
-                PushOverlay(new RuntimeLayer());
-            }
+            PushOverlay(new EditorLayer());
+            PushOverlay(new RuntimeLayer());
         }
     };
 
@@ -41,6 +34,11 @@ namespace Tupla
         {
             spec.WindowProperties.Width = 900;
             spec.WindowProperties.Height = 600;
+        }
+
+        if (spec.WorkingDirectory.empty())
+        {
+            spec.WorkingDirectory = spec.ApplicationDirectory + "/../../../../Project";
         }
 
         return new Tuplitor(spec);

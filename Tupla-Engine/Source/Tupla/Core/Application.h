@@ -3,12 +3,9 @@
 
 #include "Layer.h"
 #include "LayerStack.h"
-#include "Window.h"
 #include "Tupla/Core/Base.h"
 #include "Tupla/Renderer/Renderer.h"
 #include <Tupla/AssetManager/AssetManager.h>
-
-#include "Tupla/Jobs/JobManager.h"
 
 int main(int argc, char** argv);
 
@@ -49,7 +46,6 @@ namespace Tupla
 
         Renderer* GetRenderer() const { return m_Renderer.get(); }
         AssetManager& GetAssetManager() const { return *m_AssetManager; }
-        JobSystem::JobManager& GetJobManager() { return m_JobManager; }
 
         static Application& Get() { return *s_Application; }
 
@@ -61,7 +57,6 @@ namespace Tupla
         Scope<AssetManager> m_AssetManager {};
         
         ApplicationSpecification m_Specification;
-        JobSystem::JobManager m_JobManager;
         LayerStack m_LayerStack;
         bool m_Running;
 

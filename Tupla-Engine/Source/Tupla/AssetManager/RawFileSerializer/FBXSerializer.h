@@ -25,9 +25,9 @@ namespace Tupla
 
 	enum class FBXOrientation
 	{
-		X_UP,
 		Y_UP,
-		Z_UP
+		Z_UP,
+		X_UP,
 	};
 
 	class FBXSerializer : public IModelSerializer
@@ -40,7 +40,8 @@ namespace Tupla
 		void ExtractEmbedded(const std::string& srcDirectory);
 		int DetectMeshLOD(const ofbx::Mesh* mesh);
 
-		// Working memory
+		CU::Vector3f FixOrientation(const CU::Vector3f& vec) const;
+
 		FBXSerializeSettings settings;
 
 		float m_FBXScale = 1.f;

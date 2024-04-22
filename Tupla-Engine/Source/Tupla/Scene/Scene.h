@@ -1,8 +1,5 @@
 ﻿#pragma once
 #include "Entity.h"
-#include "Hot/HotCoordinator.h"
-#include "HotComponents/MaterialSystem.h"
-#include "Tupla/Jobs/Job.h"
 
 namespace Tupla
 {
@@ -20,19 +17,7 @@ namespace Tupla
 
         std::vector<Entity>& GetEntities() { return m_Entities; }
 
-        HotCoordinator& GetHOT() { return m_Coordinator; }
     private:
-        template <typename T>
-        Job MakeJob(std::shared_ptr<T>& system, HotCoordinator* coordinator)
-        {
-            auto r = m_Coordinator.GetSystemReadAccesses<T>();
-            auto w = m_Coordinator.GetSystemWriteAccesses<T>();
-            return Job([this, system, coordinator] { system->Update(coordinator); });
-        }
-
         std::vector<Entity> m_Entities;
-
-        std::shared_ptr<MaterialSystem> m_MatSystem;
-        HotCoordinator m_Coordinator;
     };
 }
