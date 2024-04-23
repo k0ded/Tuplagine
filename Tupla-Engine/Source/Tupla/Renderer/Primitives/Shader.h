@@ -2,6 +2,7 @@
 #include <wrl.h>
 
 struct ID3D11DeviceChild;
+struct _D3D_SHADER_MACRO;
 
 namespace Tupla
 {
@@ -14,6 +15,12 @@ namespace Tupla
 		ComputeShader
 	};
 
+	struct ShaderMacro
+	{
+		const char* Name;
+		const char* Definition;
+	};
+
 	class Shader
 	{
 		friend class RHI;
@@ -21,6 +28,8 @@ namespace Tupla
 	public:
 		Shader();
 		~Shader();
+
+		bool CompileShader(const std::string& aPath, std::vector<ShaderMacro> aMacros, ShaderType aType, bool aDebug = false);
 
 		const Microsoft::WRL::ComPtr<ID3D11DeviceChild>& GetShader() const { return myShader; }
 		FORCEINLINE ShaderType GetShaderType() const { return myType; }

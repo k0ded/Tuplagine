@@ -829,7 +829,7 @@ namespace Tupla
 		return LoadShaderFromMemory(outShader, aFilePath.stem().string(), shData.data(), shData.size());
 	}*/
 
-	bool RHI::LoadShaderFromMemory(Shader* outShader, const std::string& aName, const BYTE* aShaderData, size_t aShaderDataSize)
+	bool RHI::LoadShaderFromMemory(Shader* outShader, const std::string& aName, const void* aShaderData, size_t aShaderDataSize)
 	{
 		outShader->myName = aName;
 
@@ -901,7 +901,7 @@ namespace Tupla
 		return true;
 	}
 
-	bool RHI::CreateVertexShader(ComPtr<ID3D11VertexShader>& outShader, const BYTE* aShaderData, size_t aShaderDataSize)
+	bool RHI::CreateVertexShader(ComPtr<ID3D11VertexShader>& outShader, const void* aShaderData, size_t aShaderDataSize)
 	{
 		const HRESULT result = myDevice->CreateVertexShader(aShaderData, aShaderDataSize, nullptr, &outShader);
 		if (FAILED(result))
@@ -913,7 +913,7 @@ namespace Tupla
 		return true;
 	}
 
-	bool RHI::CreateGeometryShader(ComPtr<ID3D11GeometryShader>& outShader, const BYTE* aShaderData, size_t aShaderDataSize)
+	bool RHI::CreateGeometryShader(ComPtr<ID3D11GeometryShader>& outShader, const void* aShaderData, size_t aShaderDataSize)
 	{
 		const HRESULT result = myDevice->CreateGeometryShader(aShaderData, aShaderDataSize, nullptr, &outShader);
 		if (FAILED(result))
@@ -925,7 +925,7 @@ namespace Tupla
 		return true;
 	}
 
-	bool RHI::CreatePixelShader(ComPtr<ID3D11PixelShader>& outShader, const BYTE* aShaderData, size_t aShaderDataSize)
+	bool RHI::CreatePixelShader(ComPtr<ID3D11PixelShader>& outShader, const void* aShaderData, size_t aShaderDataSize)
 	{
 		const HRESULT result = myDevice->CreatePixelShader(aShaderData, aShaderDataSize, nullptr, &outShader);
 		if (FAILED(result))
@@ -937,7 +937,7 @@ namespace Tupla
 		return true;
 	}
 
-	bool RHI::CreateComputeShader(ComPtr<ID3D11ComputeShader>& outShader, const BYTE* aShaderData, size_t aShaderDataSize)
+	bool RHI::CreateComputeShader(ComPtr<ID3D11ComputeShader>& outShader, const void* aShaderData, size_t aShaderDataSize)
 	{
 		const HRESULT result = myDevice->CreateComputeShader(aShaderData, aShaderDataSize, nullptr, &outShader);
 		if (FAILED(result))
@@ -1075,26 +1075,30 @@ namespace Tupla
 		myContext->RSSetState(aPSO->RasterizerState.Get());
 		myContext->OMSetDepthStencilState(aPSO->DepthStencilState.Get(), 0);
 
+		const std::shared_ptr<Shader> vShader = aPSO->VertexShader.lock();
+		const std::shared_ptr<Shader> pShader = aPSO->PixelShader.lock();
+		const std::shared_ptr<Shader> gShader = aPSO->GeometryShader.lock();
+
 		ComPtr<ID3D11VertexShader> vsShader;
-		if (aPSO->VertexShader.lock() != nullptr)
+		if (vShader != nullptr)
 		{
-			aPSO->VertexShader.lock()->GetShader().As(&vsShader);
+			vShader->GetShader().As(&vsShader);
 			myContext->VSSetShader(vsShader.Get(), nullptr, 0);
 		}
 		else myContext->VSSetShader(nullptr, nullptr, 0);
 
 		ComPtr<ID3D11PixelShader> psShader;
-		if (aPSO->PixelShader.lock() != nullptr)
+		if (pShader != nullptr)
 		{
-			aPSO->PixelShader.lock()->GetShader().As(&psShader);
+			pShader->GetShader().As(&psShader);
 			myContext->PSSetShader(psShader.Get(), nullptr, 0);
 		}
 		else myContext->PSSetShader(nullptr, nullptr, 0);
 
 		ComPtr<ID3D11GeometryShader> gsShader;
-		if (aPSO->GeometryShader.lock() != nullptr)
+		if (gShader != nullptr)
 		{
-			aPSO->GeometryShader.lock()->GetShader().As(&gsShader);
+			gShader->GetShader().As(&gsShader);
 			myContext->GSSetShader(gsShader.Get(), nullptr, 0);
 		}
 		else myContext->GSSetShader(nullptr, nullptr, 0);

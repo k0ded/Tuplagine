@@ -7,6 +7,8 @@
 
 Tupla::RuntimeLayer::RuntimeLayer(): Layer("Game")
 {
+	std::vector<std::byte> bytes {};
+	CU::ReadFileBinary(Application::Get().GetAssetManager().GetAssetPath("Internal/Shaders/").c_str(), bytes);
 }
 
 void Tupla::RuntimeLayer::OnUpdate()

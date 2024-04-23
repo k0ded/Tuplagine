@@ -111,11 +111,11 @@ namespace Tupla
 		static void SetSamplerState(const ComPtr<ID3D11SamplerState>& aSamplerState, unsigned aSlot);
 
 		//static bool LoadShaderFromFile(Shader* outShader, const std::filesystem::path& aFilePath);
-		static bool LoadShaderFromMemory(Shader* outShader, const std::string& aName, const BYTE* aShaderData, size_t aShaderDataSize);
-		static bool CreateVertexShader(ComPtr<ID3D11VertexShader>& outShader, const BYTE* aShaderData, size_t aShaderDataSize);
-		static bool CreateGeometryShader(ComPtr<ID3D11GeometryShader>& outShader, const BYTE* aShaderData, size_t aShaderDataSize);
-		static bool CreatePixelShader(ComPtr<ID3D11PixelShader>& outShader, const BYTE* aShaderData, size_t aShaderDataSize);
-		static bool CreateComputeShader(ComPtr<ID3D11ComputeShader>& outShader, const BYTE* aShaderData, size_t aShaderDataSize);
+		static bool LoadShaderFromMemory(Shader* outShader, const std::string& aName, const void* aShaderData, size_t aShaderDataSize);
+		static bool CreateVertexShader(ComPtr<ID3D11VertexShader>& outShader, const void* aShaderData, size_t aShaderDataSize);
+		static bool CreateGeometryShader(ComPtr<ID3D11GeometryShader>& outShader, const void* aShaderData, size_t aShaderDataSize);
+		static bool CreatePixelShader(ComPtr<ID3D11PixelShader>& outShader, const void* aShaderData, size_t aShaderDataSize);
+		static bool CreateComputeShader(ComPtr<ID3D11ComputeShader>& outShader, const void* aShaderData, size_t aShaderDataSize);
 
 
 		static void SetShader(const Shader* aShader);

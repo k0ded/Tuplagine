@@ -39,9 +39,9 @@ namespace Tupla
 		std::vector<PSOStructuredShaderResource> PipelineStructuredShaderResources;
 		std::shared_ptr<Texture> DepthStencil;
 
-		u32 Topology;
-		bool ClearRenderTargets;
-		bool ClearDepthStencil;
+		u32 Topology = 4;
+		bool ClearRenderTargets = false;
+		bool ClearDepthStencil = false;
 
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> InputLayout;
 		Microsoft::WRL::ComPtr<ID3D11BlendState> BlendState;
