@@ -29,7 +29,7 @@ namespace Tupla
 		Shader();
 		~Shader();
 
-		bool CompileShader(const std::string& aPath, std::vector<ShaderMacro> aMacros, ShaderType aType, bool aDebug = false);
+		bool CompileShader(const std::string& aPath, ShaderType aType, std::vector<ShaderMacro> aMacros = {}, bool aDebug = false);
 
 		const Microsoft::WRL::ComPtr<ID3D11DeviceChild>& GetShader() const { return myShader; }
 		FORCEINLINE ShaderType GetShaderType() const { return myType; }

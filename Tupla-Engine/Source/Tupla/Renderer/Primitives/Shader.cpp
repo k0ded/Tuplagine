@@ -37,8 +37,8 @@ bool Tupla::Shader::CompileShader(const std::string& aPath, ShaderType aType, st
 
 	if(aDebug)
 	{
-		flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 		flags |= D3DCOMPILE_DEBUG;
+		flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 		flags |= D3DCOMPILE_WARNINGS_ARE_ERRORS;
 	}
 	else

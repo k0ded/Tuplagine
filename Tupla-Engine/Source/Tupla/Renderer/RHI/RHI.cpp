@@ -831,6 +831,7 @@ namespace Tupla
 
 	bool RHI::LoadShaderFromMemory(Shader* outShader, const std::string& aName, const void* aShaderData, size_t aShaderDataSize)
 	{
+		ASSERT(outShader, "Please for the love of god, why is the outShader not initialized!?");
 		outShader->myName = aName;
 
 		// TODO: Make a shader reflect function
@@ -853,47 +854,47 @@ namespace Tupla
 
 		switch (outShader->GetShaderType())
 		{
-		case ShaderType::VertexShader:
-		{
-			ComPtr<ID3D11VertexShader> vsShader;
-			if (CreateVertexShader(vsShader, aShaderData, aShaderDataSize))
+			case ShaderType::VertexShader:
 			{
-				outShader->myShader = vsShader;
+				ComPtr<ID3D11VertexShader> vsShader;
+				if (CreateVertexShader(vsShader, aShaderData, aShaderDataSize))
+				{
+					outShader->myShader = vsShader;
+				}
+				break;
 			}
-			break;
-		}
-		case ShaderType::GeometryShader:
-		{
-			ComPtr<ID3D11GeometryShader> gmShader;
-			if (CreateGeometryShader(gmShader, aShaderData, aShaderDataSize))
+			case ShaderType::GeometryShader:
 			{
-				outShader->myShader = gmShader;
+				ComPtr<ID3D11GeometryShader> gmShader;
+				if (CreateGeometryShader(gmShader, aShaderData, aShaderDataSize))
+				{
+					outShader->myShader = gmShader;
+				}
+				break;
 			}
-			break;
-		}
-		case ShaderType::PixelShader:
-		{
-			ComPtr<ID3D11PixelShader> pxShader;
-			if (CreatePixelShader(pxShader, aShaderData, aShaderDataSize))
+			case ShaderType::PixelShader:
 			{
-				outShader->myShader = pxShader;
+				ComPtr<ID3D11PixelShader> pxShader;
+				if (CreatePixelShader(pxShader, aShaderData, aShaderDataSize))
+				{
+					outShader->myShader = pxShader;
+				}
+				break;
 			}
-			break;
-		}
-		case ShaderType::ComputeShader:
-		{
-			ComPtr<ID3D11ComputeShader> cpShader;
-			if (CreateComputeShader(cpShader, aShaderData, aShaderDataSize))
+			case ShaderType::ComputeShader:
 			{
-				outShader->myShader = cpShader;
+				ComPtr<ID3D11ComputeShader> cpShader;
+				if (CreateComputeShader(cpShader, aShaderData, aShaderDataSize))
+				{
+					outShader->myShader = cpShader;
+				}
+				break;
 			}
-			break;
-		}
-		default:
-		{
-			LOG_CRITICAL("Trying to load an unknown shader type!");
-			break;
-		}
+			default:
+			{
+				LOG_CRITICAL("Trying to load an unknown shader type!");
+				break;
+			}
 		}
 
 		D3D_SET_OBJECT_NAME_A(outShader->myShader, outShader->myName.data());
