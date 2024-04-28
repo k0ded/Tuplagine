@@ -5,6 +5,6 @@ namespace Tupla
 {
 	struct ObjectBuffer
 	{
-		CU::Matrix4x4<float> World;
+		CU::Matrix4x4<float> Transform;
 	};
 }

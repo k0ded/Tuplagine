@@ -2,11 +2,19 @@
 #include "Renderer.h"
 #include <wrl.h>
 
+#include "Camera.h"
+#include "Commands/CameraGFXCommand.h"
 #include "CommonUtilities/Math/Matrices/Matrix4x4.hpp"
 #include "CommonUtilities/Time/Time.h"
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
+#include "Primitives/Shader.h"
+#include "Primitives/Vertex.h"
+#include "Program/DepthProgram.h"
 #include "RHI/PipelineStateObject.h"
+#include "RHI/RHI.h"
+#include "Tupla/AssetManager/AssetManager.h"
+#include "Tupla/Core/Application.h"
 
 #pragma comment(lib, "user32")
 #pragma comment(lib, "d3d11")
@@ -25,10 +33,11 @@ namespace Tupla
 
 	bool Renderer::Init()
 	{
-        myBackBuffer = CreateScope<Texture>();
-        myDepthBuffer = CreateScope<Texture>();
+        myDefaultPSO.RenderTargets.push_back(CreateRef<Texture>());    // BackBuffer
+        myDefaultPSO.DepthStencil = CreateRef<Texture>();                   // DepthBuffer
 
-        RHI::Init(*myWindow, myBackBuffer.get(), myDepthBuffer.get(), true);
+        RHI::Init(*myWindow, myDefaultPSO.RenderTargets[0].get(), myDefaultPSO.DepthStencil.get(), true);
+        CreateDefaultPSO();
 
         ImGui::CreateContext();
         ImGui_ImplDX11_Init(RHI::GetDevice().Get(), RHI::GetContext().Get());
@@ -48,6 +57,7 @@ namespace Tupla
 	{
         myFrameWatch.Update();
         myPrevTimes.push_back(myFrameWatch.GetDeltaTime());
+        SwapBuffers();
 
         if(myPrevTimes.size() > 10)
         {
@@ -72,9 +82,7 @@ namespace Tupla
             if (windowExtents != myRenderingSize)
             {
                 myRenderingSize = windowExtents;
-                myBackBuffer = CreateScope<Texture>();
-                myDepthBuffer = CreateScope<Texture>();
-                RHI::ResizeDevice(myBackBuffer.get(), myDepthBuffer.get());
+                RHI::ResizeDevice(myDefaultPSO.RenderTargets[0], myDefaultPSO.DepthStencil);
             }
         }
 
@@ -83,9 +91,33 @@ namespace Tupla
         ImGui::NewFrame();
 	}
 
+	void Renderer::ProcessCommands()
+	{
+        ResetToDefault();
+        Camera::Bind();
+
+        for (const auto& camCmd : myRenderBuffer->GetVector<CameraGFXCommand>().GetData())
+        {
+            camCmd.CameraObject.Update();
+
+            auto colorTarget = myDefaultPSO.RenderTargets[0].get();
+            auto depthTarget = myDefaultPSO.DepthStencil.get();
+
+            if(camCmd.ColorTarget != nullptr || camCmd.DepthTarget != nullptr) // This means target is our SwapChain!!!
+            {
+                colorTarget = camCmd.ColorTarget ? camCmd.ColorTarget.get() : nullptr;
+                depthTarget = camCmd.DepthTarget ? camCmd.DepthTarget.get() : nullptr;
+            }
+
+            RunDepthPass(myRenderBuffer->GetVector<ModelGFXCommand>(), camCmd.CameraObject, myDefaultVertexShader, nullptr, colorTarget);
+        }
+
+
+        RHI::SetRenderTarget(myDefaultPSO.RenderTargets[0].get(), myDefaultPSO.DepthStencil.get());
+	}
+
 	void Renderer::EndFrame()
 	{
-        RHI::SetRenderTarget(myBackBuffer.get(), myDepthBuffer.get());
         ImGuiIO& io = ImGui::GetIO();
         // Rendering IMGUI
         ImGui::Render();
@@ -98,5 +130,41 @@ namespace Tupla
         }
 
         RHI::Present();
+	}
+
+	void Renderer::CreateDefaultPSO()
+	{
+        std::string defaultShaderPath = Application::Get().GetAssetManager().GetAssetPath("Internal/Default.hlsl");
+
+        myDefaultVertexShader = CreateRef<Shader>();
+        myDefaultPixelShader = CreateRef<Shader>();
+
+        ComPtr<ID3DBlob> compiledCode {};
+
+        if (!myDefaultVertexShader->CompileShader(defaultShaderPath, ShaderType::VertexShader, {}, false, &compiledCode))
+        {
+            LOG_CRITICAL("Failed to compile default vertex shader...");
+        }
+
+		if(!myDefaultPixelShader->CompileShader(defaultShaderPath, ShaderType::PixelShader, {}, true))
+		{
+            LOG_ERROR("Failed to compile default pixel shader...");
+		}
+
+        RHI::GetDepthState(myDefaultPSO.DepthStencilState, DepthState::Default);
+        RHI::GetRasterizerState(myDefaultPSO.RasterizerState, RasterizerState::CullBack);
+        RHI::CreateBlendState(myDefaultPSO.BlendState, {});
+        RHI::CreateInputLayout(myDefaultPSO.InputLayout, Vertex::InputLayoutDefinition, compiledCode->GetBufferPointer(), compiledCode->GetBufferSize());
+
+        myDefaultPSO.VertexShader = myDefaultVertexShader;
+        myDefaultPSO.PixelShader = myDefaultPixelShader;
+
+        myDefaultPSO.ClearRenderTargets = true;
+        myDefaultPSO.ClearDepthStencil = true;
+	}
+
+	void Renderer::ResetToDefault()
+	{
+        RHI::SetPipelineStateObject(&myDefaultPSO);
 	}
 }

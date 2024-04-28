@@ -16,6 +16,7 @@
 #include "../Buffers/ComputeBuffer.h"
 #include "Tupla/Core/Application.h"
 #include "PipelineStateObject.h"
+#include "Internal/LoaderHelpers.h"
 //#include "../Debug/Instrumentor.h"
 
 #define AUR_PROFILE_FUNCTION() 
@@ -765,13 +766,27 @@ namespace Tupla
 		return true;
 	}
 
-	bool RHI::CreateInputLayout(ComPtr<ID3D11InputLayout>& outInputLayout, const std::vector<D3D11_INPUT_ELEMENT_DESC>& aInputLayoutDesc, const BYTE* aShaderData, size_t aShaderDataSize)
+	bool RHI::CreateInputLayout(ComPtr<ID3D11InputLayout>& outInputLayout, const std::vector<VertexElementDesc>& aInputLayoutDesc, const void* aShaderData, size_t aShaderDataSize)
 	{
+		std::vector<D3D11_INPUT_ELEMENT_DESC> inElements(aInputLayoutDesc.size());
 		if (!outInputLayout)
 		{
+			for (int i = 0; i < aInputLayoutDesc.size(); ++i)
+			{
+				D3D11_INPUT_ELEMENT_DESC input{};
+				input.SemanticName = aInputLayoutDesc[i].Semantic.c_str();
+				input.SemanticIndex = aInputLayoutDesc[i].SemanticIndex;
+				input.Format = static_cast<DXGI_FORMAT>(aInputLayoutDesc[i].Type);
+				input.AlignedByteOffset = (static_cast<u32>(DirectX::LoaderHelpers::BitsPerPixel(input.Format)) / 8) * input.SemanticIndex; // Automatically fixes alignment of bytes!
+				input.InputSlotClass = aInputLayoutDesc[i].PerInstance ? D3D11_INPUT_PER_INSTANCE_DATA : D3D11_INPUT_PER_VERTEX_DATA;
+				input.InputSlot = 0; // TODO: Potentially add support for more input slots?
+
+				inElements[i] = input;
+			}
+
 			const HRESULT result = myDevice->CreateInputLayout
 			(
-				aInputLayoutDesc.data(),
+				inElements.data(),
 				static_cast<UINT>(aInputLayoutDesc.size()),
 				aShaderData,
 				aShaderDataSize,
@@ -1070,6 +1085,8 @@ namespace Tupla
 
 	void RHI::SetPipelineStateObject(PipelineStateObject* aPSO)
 	{
+		ASSERT(aPSO, "Cant set the PSO to a nullptr!");
+
 		const std::array<float, 4> blendFactor = { 0, 0, 0, 0 };
 		constexpr unsigned samplerMask = 0xffffffff;
 		myContext->OMSetBlendState(aPSO->BlendState.Get(), blendFactor.data(), samplerMask);
@@ -1091,6 +1108,7 @@ namespace Tupla
 		ComPtr<ID3D11PixelShader> psShader;
 		if (pShader != nullptr)
 		{
+			
 			pShader->GetShader().As(&psShader);
 			myContext->PSSetShader(psShader.Get(), nullptr, 0);
 		}
@@ -1212,7 +1230,7 @@ namespace Tupla
 		}
 	}
 
-	void RHI::SetComputePipelineStateObject(ComputePipelineStateObject* aPSO)
+	void RHI::SetComputePipelineStateObject(const ComputePipelineStateObject* aPSO)
 	{
 		ComPtr<ID3D11ComputeShader> cpShader;
 		if (aPSO->ComputeShader.lock() != nullptr)
@@ -1992,8 +2010,10 @@ namespace Tupla
 		return bytes;
 	}
 
-	const bool RHI::ResizeDevice(Texture* outBackBuffer, Texture* outDepthBuffer)
+	bool RHI::ResizeDevice(std::shared_ptr<Texture>& outBackBuffer, std::shared_ptr<Texture>& outDepthBuffer)
 	{
+		outBackBuffer = std::make_shared<Texture>();
+		outDepthBuffer = std::make_shared<Texture>();
 		myContext->OMSetRenderTargets(0, 0, 0);
 		HRESULT result = E_FAIL;
 
@@ -2045,7 +2065,7 @@ namespace Tupla
 		backBufferTexture->GetDesc(&desc);
 
 		// For the Scene Depth we can just use our own function to create a depth texture.
-		if (CreateTexture(outDepthBuffer, "GraphicsEngine_DepthBuffer", windowWidth, windowHeight,
+		if (CreateTexture(outDepthBuffer.get(), "GraphicsEngine_DepthBuffer", windowWidth, windowHeight,
 			DXGI_FORMAT::DXGI_FORMAT_R32_TYPELESS, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL) == false)
 		{
 			LOG_CRITICAL("Failed to create depth buffer!");

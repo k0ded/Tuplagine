@@ -14,6 +14,7 @@ using namespace Microsoft::WRL;
 
 namespace Tupla
 {
+	struct VertexElementDesc;
 	class ConstantBuffer;
 	class ComputeBuffer;
 
@@ -105,7 +106,7 @@ namespace Tupla
 		static bool CreateIndexBuffer(ComPtr<ID3D11Buffer>& outIndexBuffer, const std::vector<unsigned>& aIndexList);
 		static bool CreateDynamicIndexBuffer(ComPtr<ID3D11Buffer>& outIndexBuffer, const size_t aMaxNumberOfIndices);
 
-		static bool CreateInputLayout(ComPtr<ID3D11InputLayout>& outInputLayout, const std::vector<D3D11_INPUT_ELEMENT_DESC>& aInputLayoutDesc, const BYTE* aShaderData, size_t aShaderDataSize);
+		static bool CreateInputLayout(ComPtr<ID3D11InputLayout>& outInputLayout, const std::vector<VertexElementDesc>& aInputLayoutDesc, const void* aShaderData, size_t aShaderDataSize);
 
 		static bool CreateSamplerState(ComPtr<ID3D11SamplerState>& outSamplerState, const D3D11_SAMPLER_DESC& aDescription);
 		static void SetSamplerState(const ComPtr<ID3D11SamplerState>& aSamplerState, unsigned aSlot);
@@ -133,7 +134,7 @@ namespace Tupla
 		static void SetComputeShader(const ComPtr<ID3D11ComputeShader>& aComputeShader);
 
 		static void SetPipelineStateObject(PipelineStateObject* aPSO);
-		static void SetComputePipelineStateObject(ComputePipelineStateObject* aPSO);
+		static void SetComputePipelineStateObject(const ComputePipelineStateObject* aPSO);
 
 		static void RemovePipelineStateObject(PipelineStateObject* aPSO);
 		static void RemoveComputePipelineStateObject(ComputePipelineStateObject* aPSO);
@@ -183,7 +184,7 @@ namespace Tupla
 		static CU::Vector4b GetSinglePixelValue(const Texture* aSource);
 		static CU::Vector4f GetSinglePixelValueFloat(const Texture* aSource);
 
-		static const bool ResizeDevice(Texture* outBackBuffer, Texture* outDepthBuffer);
+		static bool ResizeDevice(std::shared_ptr<Texture>& outBackBuffer, std::shared_ptr<Texture>& outDepthBuffer);
 
 		static void Present(unsigned aSyncInterval = 0);
 

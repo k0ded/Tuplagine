@@ -91,6 +91,7 @@ namespace CommonUtilities
         static Matrix4x4 CreateRotationAroundZ(T aAngleInRadians);
         static Matrix4x4 CreateRotation(Vector3<T> aAngleInRadians);
         static Matrix4x4 CreatePerspectiveProjection(float aAspect, float aHorizontalFov, float aFar, float aNear);
+        static Matrix4x4 CreateOrthographicProjection(float aWidth, float aHeight, float aFar, float aNear);
     };
 
     template <typename T>
@@ -714,6 +715,20 @@ namespace CommonUtilities
                 0                 , aAspect * zoomX   , 0               , 0,
                 0                 , 0                 ,farVal           , 1,
                 0                 , 0                 ,-aNear * farVal  , 0
+			}
+        );
+    }
+
+    template <typename T>
+    Matrix4x4<T> Matrix4x4<T>::CreateOrthographicProjection(float aWidth, float aHeight, float aFar, float aNear)
+    {
+        float fmn = 1 / (aFar - aNear);
+        return Matrix4x4(
+            std::array<T, 16> {
+				2 / aWidth, 0          , 0           , 0,
+            	0         , 2 / aHeight, 0           , 0,
+            	0         , 0          , fmn         , 0,
+            	0         , 0          , -aNear * fmn, 1
 			}
         );
     }

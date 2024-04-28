@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-// CRC32 Table (zlib polynomial)
+// CRC64 Table (zlib polynomial)
 static constexpr uint64_t crc64_tab[256] = {
     UINT64_C(0x0000000000000000), UINT64_C(0x7ad870c830358979),
     UINT64_C(0xf5b0e190606b12f2), UINT64_C(0x8f689158505e9b8b),
@@ -146,10 +146,9 @@ constexpr u64 crc64<size_t(-1)>(const char* str)
 }
 
 inline uint64_t crc64r(uint64_t crc, const char* s, uint64_t l) {
-    uint64_t j;
+	crc ^= 0xFFFFFFFFFFFFFFFF;
 
-    crc ^= 0xFFFFFFFFFFFFFFFF;
-    for (j = 0; j < l; j++) {
+    for (uint64_t j = 0; j < l; j++) {
 	    const uint8_t byte = static_cast<uint8_t>(s[j]);
         crc = crc64_tab[static_cast<uint8_t>(crc) ^ byte] ^ (crc >> 8);
     }

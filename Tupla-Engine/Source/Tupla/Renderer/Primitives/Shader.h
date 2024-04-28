@@ -1,18 +1,22 @@
 #pragma once
+#include <d3dcommon.h>
 #include <wrl.h>
 
 struct ID3D11DeviceChild;
 struct _D3D_SHADER_MACRO;
+struct IUnknown;
 
 namespace Tupla
 {
 	enum class ShaderType : unsigned
 	{
-		Unknown,
+		PixelShader,
 		VertexShader,
 		GeometryShader,
-		PixelShader,
-		ComputeShader
+		DomainShader,
+		HullShader,
+		ComputeShader,
+		Unknown
 	};
 
 	struct ShaderMacro
@@ -29,7 +33,7 @@ namespace Tupla
 		Shader();
 		~Shader();
 
-		bool CompileShader(const std::string& aPath, ShaderType aType, std::vector<ShaderMacro> aMacros = {}, bool aDebug = false);
+		bool CompileShader(const std::string& aPath, ShaderType aType, std::vector<ShaderMacro> aMacros = {}, bool aDebug = false, Microsoft::WRL::ComPtr<ID3DBlob>* outShaderCode = nullptr);
 
 		const Microsoft::WRL::ComPtr<ID3D11DeviceChild>& GetShader() const { return myShader; }
 		FORCEINLINE ShaderType GetShaderType() const { return myType; }

@@ -21,8 +21,7 @@ namespace Tupla
 		u32 myVertexCount;
 		u32 myIndexCount;
 
-	private:
-		Microsoft::WRL::ComPtr<ID3D11Buffer> myVXBuffer;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> myIXBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> VXBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> IXBuffer;
 	};
 }

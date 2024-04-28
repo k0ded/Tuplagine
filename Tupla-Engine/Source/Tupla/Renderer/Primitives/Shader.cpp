@@ -23,7 +23,13 @@ Tupla::Shader::Shader() = default;
 
 Tupla::Shader::~Shader() = default;
 
-bool Tupla::Shader::CompileShader(const std::string& aPath, ShaderType aType, std::vector<ShaderMacro> aMacros, bool aDebug)
+bool Tupla::Shader::CompileShader(
+	const std::string& aPath, 
+	ShaderType aType, 
+	std::vector<ShaderMacro> aMacros, 
+	bool aDebug,
+	ComPtr<ID3DBlob>* outShaderCode
+)
 {
 	const D3D_SHADER_MACRO* macroPtr = nullptr; // So we get a nullptr if we haven't defined any macros!
 	if(!aMacros.empty())
@@ -65,11 +71,16 @@ bool Tupla::Shader::CompileShader(const std::string& aPath, ShaderType aType, st
 		errorBlob.GetAddressOf()
 	);
 
+	if(outShaderCode)
+	{
+		*outShaderCode = compiledBlob;
+	}
+
 	if(FAILED(result))
 	{
 		if(errorBlob)
 		{
-			LOG_ERROR(errorBlob->GetBufferPointer());
+			LOG_ERROR("Failed to compile shader: {}\n{}", aPath, (char*)errorBlob->GetBufferPointer());
 		}
 
 		return false;

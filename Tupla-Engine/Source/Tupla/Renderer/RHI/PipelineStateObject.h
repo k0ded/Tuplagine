@@ -1,8 +1,6 @@
 #pragma once
 #include "wrl.h"
 
-class Shader;
-
 struct ID3D11BlendState;
 struct ID3D11RasterizerState;
 struct ID3D11DepthStencilState;
@@ -10,6 +8,9 @@ struct ID3D11InputLayout;
 
 namespace Tupla
 {
+	class Shader;
+	class ComputeBuffer;
+
 	struct PSOTextureShaderResource
 	{
 		u32 stage;

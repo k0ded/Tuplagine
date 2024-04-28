@@ -8,6 +8,7 @@ namespace Tupla
 		std::string Semantic;
 		unsigned SemanticIndex;
 		unsigned Type = 0;
+		bool PerInstance = false;
 	};
 
 	typedef enum PIPELINE_STAGE
