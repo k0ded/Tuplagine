@@ -77,15 +77,15 @@ namespace Tupla
 		std::vector<std::string> folders{};
 		std::vector<std::string> files{};
 
-		CU::FindAll(aAsset.Path.c_str(), folders, CommonUtilities::PathType::Directory, false);
-		CU::FindAll(aAsset.Path.c_str(), files, CommonUtilities::PathType::File, false);
+		CU::FindAll(aAsset.Path, folders, CommonUtilities::PathType::Directory, false);
+		CU::FindAll(aAsset.Path, files, CommonUtilities::PathType::File, false);
 
 		BrowserAsset asset;
 		asset.parentAsset = &aAsset;
 		for (const auto& folder : folders)
 		{
-			asset.Name = folder.substr(aAsset.Path.size());
-			asset.Path = folder + "\\";
+			asset.Name = folder.substr(aAsset.Path.string().size());
+			asset.Path = folder;
 			asset.Type = AssetType::Folder;
 			BuildAssets(asset);
 			aAsset.myChildAssets.push_back(asset);
@@ -93,7 +93,7 @@ namespace Tupla
 
 		for (const auto& file : files)
 		{
-			asset.Name = file.substr(aAsset.Path.size());
+			asset.Name = file.substr(aAsset.Path.string().size());
 			asset.Path = file;
 			asset.Type = AssetType::Model;
 			aAsset.myChildAssets.push_back(asset);

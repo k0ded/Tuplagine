@@ -30,10 +30,10 @@ namespace Tupla
 		X_UP,
 	};
 
-	class FBXSerializer : public IModelSerializer
+	class FBXImporter : public IAssetPostProcessor
 	{
 	public:
-		std::vector<Ref<Mesh>> SerializeModel(const std::string& aSourcePath) override;
+		void PostProcess(const std::vector<std::byte>& aData, Asset* aAsset) override;
 
 	private:
 		void GatherMeshes();

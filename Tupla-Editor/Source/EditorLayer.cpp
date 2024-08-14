@@ -36,6 +36,7 @@ void Tupla::EditorLayer::OnGUI()
 	}
 
 	auto wSize = ImGui::GetContentRegionAvail();
+	
 	// Queues viewport image resize
 	ImGui::End();
 	ImGui::PopStyleVar();

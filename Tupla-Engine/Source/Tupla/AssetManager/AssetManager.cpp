@@ -1,6 +1,7 @@
 ﻿#include "tgpch.h"
 #include "AssetManager.h"
 
+#include <filesystem>
 #include <ranges>
 
 #include "Tupla/Core/Application.h"
@@ -22,6 +23,7 @@ constexpr const char* HEADER = "TUP";
 
 // ASSET FORMAT
 // AssetID		- 8 bytes
+// AssetGUID	- 16 bytes
 // PhysicalFile - 8 bytes (index into files)
 // Offset		- 8 bytes
 // Size			- 8 bytes
@@ -53,30 +55,30 @@ Tupla::AssetManager::AssetManager(std::string CacheLocation): m_CacheLocation(st
                                                               m_Version(0)
 {
 	LoadVirtualMap();
-	m_AbsoluteCacheLocation = Application::Get().GetSpecification().WorkingDirectory + "\\" + m_CacheLocation;
+	m_AbsoluteCacheLocation = Application::Get().GetSpecification().WorkingDirectory / m_CacheLocation;
 }
 
-std::string Tupla::AssetManager::GetAssetPath(const std::string& aString) const
+std::filesystem::path Tupla::AssetManager::GetAssetPath(const std::filesystem::path& aString) const
 {
-	return Application::Get().GetSpecification().WorkingDirectory + "\\Assets\\" + aString;
+	return Application::Get().GetSpecification().WorkingDirectory / "Assets" / aString;
 }
 
-std::string Tupla::AssetManager::GetCachePath(const std::string& aString) const
+std::filesystem::path Tupla::AssetManager::GetCachePath(const std::filesystem::path& aString) const
 {
-	return m_AbsoluteCacheLocation + "\\" + aString;
+	return m_AbsoluteCacheLocation / aString;
 }
 
-std::string Tupla::AssetManager::GetRootPath(const std::string& aString) const
+std::filesystem::path Tupla::AssetManager::GetRootPath(const std::filesystem::path& aString) const
 {
-	return Application::Get().GetSpecification().WorkingDirectory + "\\" + aString;
+	return Application::Get().GetSpecification().WorkingDirectory / aString;
 }
 
 bool Tupla::AssetManager::LoadVirtualMap()
 {
-	const auto path = Application::Get().GetSpecification().WorkingDirectory + "\\" + VMAP_PATH;
+	const auto path = Application::Get().GetSpecification().WorkingDirectory / VMAP_PATH;
 
 	std::vector<std::byte> data;
-	size_t dataSize = CU::ReadFileBinary(path.c_str(), data);
+	size_t dataSize = CU::ReadFileBinary(path.string().c_str(), data);
 
 	// Make sure header that the header may be correct.
 	if(dataSize < 3 + 8 + 4 + 4)
@@ -152,7 +154,7 @@ bool Tupla::AssetManager::LoadVirtualMap()
 
 void Tupla::AssetManager::SaveVirtualMap()
 {
-	const auto path = Application::Get().GetSpecification().WorkingDirectory + "\\" + VMAP_PATH;
+	const auto path = Application::Get().GetSpecification().WorkingDirectory / VMAP_PATH;
 
 	size_t byteSize = 3 + 8 + 4 + 4;
 	byteSize += m_VirtualToPhysicalMap.size() * ASSET_SIZE;
@@ -166,9 +168,9 @@ void Tupla::AssetManager::SaveVirtualMap()
 
 		if(found == strings.end())
 		{
-			strings.push_back(entry.PhysicalFilePath);
+			strings.push_back(entry.PhysicalFilePath.string());
 			byteSize += 4; // Forgot the size specifier oopsie
-			byteSize += entry.PhysicalFilePath.size() + 1; // We cannot forget the null terminator!
+			byteSize += entry.PhysicalFilePath.string().size() + 1; // We cannot forget the null terminator!
 			idToPhysicalIndex[id] = strings.size() - 1;
 		}
 		else 
@@ -214,9 +216,9 @@ void Tupla::AssetManager::SaveVirtualMap()
 		mPtr += ASSET_SIZE;
 	}
 
-	if(CU::WriteFileBinary(path.c_str(), data.data(), (u32)data.size()))
+	if(CU::WriteFileBinary(path.string().c_str(), data.data(), static_cast<u32>(data.size())))
 	{
-		LOG_INFO("Successfully built VMAP binary! Located at: {}", path.c_str());
+		LOG_INFO("Successfully built VMAP binary! Located at: {}", path.string().c_str());
 	}
 	else
 	{
@@ -226,21 +228,21 @@ void Tupla::AssetManager::SaveVirtualMap()
 
 void Tupla::AssetManager::BuildVirtualMap()
 {
-	const auto workingDirectory = Application::Get().GetSpecification().WorkingDirectory + "\\Assets\\";
-	const auto cacheDirectory = Application::Get().GetSpecification().WorkingDirectory + "\\" + m_CacheLocation + "\\";
+	const auto workingDirectory = Application::Get().GetSpecification().WorkingDirectory / "Assets";
+	const auto cacheDirectory = Application::Get().GetSpecification().WorkingDirectory / m_CacheLocation;
 
 	if(workingDirectory.empty())
 	{
 		return;
 	}
 
-	CU::CreateDirectories(workingDirectory.c_str());
+	CU::CreateDirectories(workingDirectory.string().c_str());
 
 	std::vector<std::string> files {};
 	std::vector<std::string> cachedFiles {};
-	CU::FindAll(workingDirectory.c_str(), files);
+	CU::FindAll(workingDirectory, files);
 
-	CU::FindAll(cacheDirectory.c_str(), cachedFiles);
+	CU::FindAll(cacheDirectory, cachedFiles);
 
 	for (const auto& cached_file : cachedFiles)
 	{
@@ -260,28 +262,28 @@ void Tupla::AssetManager::BuildVirtualMap()
 
 		if(!exists)
 		{
-			if(!CU::RemoveFile(cached_file.c_str()))
+			if(!std::filesystem::remove(cached_file.c_str()))
 			{
-				LOG_WARN("Failed to remove cached file: {}", cached_file);
+				LOG_WARN("Failed to remove cached file: {}", cached_file.c_str());
 			}
 		}
 	}
 
 	for (const auto& file : files)
 	{
-		auto fileName = file.substr(workingDirectory.size());
+		auto fileName = file.substr(workingDirectory.string().size());
 
 		const u64 hash = HASH_RUNTIME_STR(fileName.c_str());
 
 		if (!m_VirtualToPhysicalMap.contains(hash))
 		{
-			const auto cacheLocation = cacheDirectory + fileName;
+			const auto cacheLocation = cacheDirectory / fileName;
 			m_VirtualToPhysicalMap[hash].PhysicalFilePath = fileName;
 
-			if (CU::FileExists(cacheLocation.c_str()))
+			if (CU::FileExists(cacheLocation.string().c_str()))
 			{
 				m_VirtualToPhysicalMap[hash].IsPacked = true;
-				LOG_INFO("Found cached file: {}", cacheLocation);
+				LOG_INFO("Found cached file: {}", cacheLocation.string());
 			}
 			else
 			{

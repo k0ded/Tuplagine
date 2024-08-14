@@ -7,10 +7,11 @@
 #include "Tupla/Core/Application.h"
 #include "CommonUtilities/Strings.hpp"
 #include "CommonUtilities/Math/Matrices/Matrix4x4.hpp"
+#include "Tupla/AssetManager/Assets/MeshAsset.h"
 #include "Tupla/Renderer/Primitives/Mesh.h"
 #include "Tupla/Renderer/Primitives/Vertex.h"
 
-std::vector<Tupla::Ref<Tupla::Mesh>> Tupla::FBXSerializer::SerializeModel(const std::string& aSourcePath)
+void Tupla::FBXImporter::PostProcess(const std::vector<std::byte>& data, Asset* aAsset)
 {
 	if(m_Scene)
 	{
@@ -19,22 +20,15 @@ std::vector<Tupla::Ref<Tupla::Mesh>> Tupla::FBXSerializer::SerializeModel(const 
 		m_Meshes.clear();
 	}
 
-	std::vector<std::byte> data;
-	if (!CU::ReadFileBinary(aSourcePath.c_str(), data))
-	{
-		LOG_ERROR("Failed to read model: {}", aSourcePath.c_str());
-		return {};
-	}
-
 	m_Scene = ofbx::load(reinterpret_cast<const u8*>(data.data()), static_cast<i32>(data.size()), static_cast<u16>(ofbx::LoadFlags::NONE), nullptr, nullptr);
 
 	if (!m_Scene)
 	{
 		LOG_ERROR("Failed to import \"{}: {}\n"
 			"Please try to convert the FBX file with Autodesk FBX Converter or some other software to the latest version.",
-			aSourcePath, ofbx::getError()
+			aAsset->GetID(), ofbx::getError()
 		);
-		return {};
+		return;
 	}
 
 	m_FBXScale = m_Scene->getGlobalSettings()->UnitScaleFactor;
@@ -48,12 +42,12 @@ std::vector<Tupla::Ref<Tupla::Mesh>> Tupla::FBXSerializer::SerializeModel(const 
 	case ofbx::UpVector_AxisZ: m_Orientation = FBXOrientation::Z_UP; break;
 	}
 
-	ExtractEmbedded(std::filesystem::path(aSourcePath).parent_path().string());
+	//ExtractEmbedded(std::filesystem::path(aSourcePath).parent_path().string());
 	GatherMeshes();
-	return m_Meshes;
+	static_cast<MeshAsset*>(aAsset)->SetMeshes(std::move(m_Meshes));
 }
 
-void Tupla::FBXSerializer::GatherMeshes()
+void Tupla::FBXImporter::GatherMeshes()
 {
 	int meshCount = m_Scene->getMeshCount();
 
@@ -187,7 +181,7 @@ void Tupla::FBXSerializer::GatherMeshes()
 	}
 }
 
-void Tupla::FBXSerializer::ExtractEmbedded(const std::string& srcDirectory)
+void Tupla::FBXImporter::ExtractEmbedded(const std::string& srcDirectory)
 {
 	UNREFERENCED_PARAMETER(srcDirectory);
 	// TODO: Extract embedded data to file!
@@ -200,7 +194,7 @@ void Tupla::FBXSerializer::ExtractEmbedded(const std::string& srcDirectory)
 	}
 }
 
-int Tupla::FBXSerializer::DetectMeshLOD(const ofbx::Mesh* mesh)
+int Tupla::FBXImporter::DetectMeshLOD(const ofbx::Mesh* mesh)
 {
 	const char* nodeName = mesh->name;
 	const char* lod_str = CU::FindInsensitive(mesh->name, "_LOD");
@@ -217,7 +211,7 @@ int Tupla::FBXSerializer::DetectMeshLOD(const ofbx::Mesh* mesh)
 	return lod;
 }
 
-CU::Vector3f Tupla::FBXSerializer::FixOrientation(const CU::Vector3f& vec) const
+CU::Vector3f Tupla::FBXImporter::FixOrientation(const CU::Vector3f& vec) const
 {
 	switch (m_Orientation)
 	{

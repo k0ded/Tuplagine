@@ -28,6 +28,8 @@ namespace Tupla
 		u32 Height() const { return myHeight; }
 		u32 Depth() const { return myDepth; }
 
+		void Resize(CU::Vector2ui aNewSize);
+
 	private:
 		std::string myName;
 		u32 myBindFlags = 0;

@@ -2,8 +2,6 @@
 #include "Scene.h"
 #include "Entity.h"
 
-#include "Tupla/Core/Application.h"
-
 namespace Tupla
 {
 	Scene::Scene()

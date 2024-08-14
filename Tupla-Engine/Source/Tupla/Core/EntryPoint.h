@@ -24,8 +24,8 @@ int main(int argc, char** argv)
         if(Tupla::Application::s_Application)
         {
             argc = 2;
-            argv[1] = new char[Tupla::Application::Get().GetSpecification().WorkingDirectory.size() + 1];
-            memcpy(argv[1], Tupla::Application::Get().GetSpecification().WorkingDirectory.c_str(), Tupla::Application::Get().GetSpecification().WorkingDirectory.size() + 1);
+            argv[1] = new char[Tupla::Application::Get().GetSpecification().WorkingDirectory.string().size() + 1];
+            memcpy(argv[1], Tupla::Application::Get().GetSpecification().WorkingDirectory.c_str(), Tupla::Application::Get().GetSpecification().WorkingDirectory.string().size() + 1);
             delete Tupla::Application::s_Application;
         }
         Tupla::CreateApplication({ argc, argv });

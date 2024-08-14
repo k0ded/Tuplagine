@@ -328,8 +328,67 @@ namespace Tupla
 	bool RHI::ResizeTexture(Texture* outTexture, UINT aWidth, UINT aHeight)
 	{
 		ASSERT(outTexture, "Can't resize a non-existant texture object!");
+		ASSERT(outTexture->myTexture, "Can't resize a texture that hasn't been initialized!");
+		ASSERT(outTexture->myType == TextureType::Texture2D, "Can only resize Texture2D at the moment!");
 
-		return false;
+		if (aWidth < 1 || aHeight < 1 || aHeight > 25600 || aWidth > 25600)
+		{
+			LOG_WARN("I just tried to resize a texture to dimensions X: {} Y: {} which is called {}", aWidth, aHeight, outTexture->myName);
+			aWidth = 4;
+			aHeight = 4;
+		}
+
+		if(outTexture->Width() == aWidth && outTexture->Height() == aHeight) return true;
+		
+		D3D11_TEXTURE2D_DESC desc;
+		outTexture->myTexture->GetDesc(&desc);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+
+		if(outTexture->mySRV) outTexture->mySRV->GetDesc(&srvDesc);
+		if(outTexture->myRTV) outTexture->myRTV->GetDesc(&rtvDesc);
+		if(outTexture->myDSV) outTexture->myDSV->GetDesc(&dsvDesc);
+		if(outTexture->myUAV) outTexture->myUAV->GetDesc(&uavDesc);
+
+		srvDesc.Texture2D.MostDetailedMip = 1;
+		srvDesc.Texture2D.MipLevels = -1;
+
+		desc.Width = aWidth;
+		desc.Height = aHeight;
+
+		ComPtr<ID3D11Texture2D> texture;
+		HRESULT result = myDevice->CreateTexture2D(&desc, nullptr, outTexture->myTexture.GetAddressOf());
+
+
+		ComPtr<ID3D11ShaderResourceView> srv;
+		ComPtr<ID3D11RenderTargetView> rtv;
+		ComPtr<ID3D11DepthStencilView> dsv;
+		ComPtr<ID3D11UnorderedAccessView> uav;
+
+		if(outTexture->mySRV && SUCCEEDED(result)) result = myDevice->CreateShaderResourceView(outTexture->myTexture.Get(), &srvDesc, &srv);
+		if(outTexture->myRTV && SUCCEEDED(result)) result = myDevice->CreateRenderTargetView(outTexture->myTexture.Get(), &rtvDesc, &rtv);
+		if(outTexture->myDSV && SUCCEEDED(result)) result = myDevice->CreateDepthStencilView(outTexture->myTexture.Get(), &dsvDesc, &dsv);
+		if(outTexture->myUAV && SUCCEEDED(result)) result = myDevice->CreateUnorderedAccessView(outTexture->myTexture.Get(), &uavDesc, &uav);
+
+		if (SUCCEEDED(result))
+		{
+			outTexture->myTexture = texture;
+			outTexture->myHeight = aHeight;
+			outTexture->myWidth = aWidth;
+
+			outTexture->mySRV = srv;
+			outTexture->myRTV = rtv;
+			outTexture->myDSV = dsv;
+			outTexture->myUAV = uav;
+			return true;
+		}
+		else 
+		{
+			return false;
+		}
 	}
 
 	bool RHI::CreateTextureCube(Texture* outTexture, const std::string& aName, UINT aWidth, UINT aHeight, UINT aFormat, D3D11_USAGE aUsageFlags, UINT aBindFlags, UINT aCpuAccessFlags)
@@ -1205,7 +1264,7 @@ namespace Tupla
 
 					if (resource.stage & PIPELINE_STAGE_COMPUTE_SHADER)
 					{
-						const UINT minusOne = -1; //Varf?r DX11!? VARF?R?
+						const UINT minusOne = -1; //VarfÃ¶r DX11!? VARFÃ–R?
 						myContext->CSSetUnorderedAccessViews(resource.slot, 1, resource.buffer->myUAV.GetAddressOf(), &minusOne);
 					}
 				}
@@ -1253,7 +1312,7 @@ namespace Tupla
 
 					if (resource.stage & PIPELINE_STAGE_COMPUTE_SHADER)
 					{
-						const UINT minusOne = -1; //Varför DX11!? VARFÖR?
+						const UINT minusOne = -1; //VarfÃ¶r DX11!? VARFÃ–R?
 						myContext->CSSetUnorderedAccessViews(resource.slot, 1, resource.buffer->myUAV.GetAddressOf(), &minusOne);
 					}
 				}
@@ -1452,7 +1511,7 @@ namespace Tupla
 				{
 					if (resource.stage & PIPELINE_STAGE_COMPUTE_SHADER)
 					{
-						const UINT minusOne = -1; //Varför DX11!? VARFÖR?
+						const UINT minusOne = -1; //VarfÃ¶r DX11!? VARFÃ–R?
 						myContext->CSSetUnorderedAccessViews(resource.slot, 1, nullVs.data(), &minusOne);
 					}
 				}

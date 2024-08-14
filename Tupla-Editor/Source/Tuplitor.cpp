@@ -38,7 +38,7 @@ namespace Tupla
 
         if (spec.WorkingDirectory.empty())
         {
-            spec.WorkingDirectory = spec.ApplicationDirectory + "/../../../../Project";
+            spec.WorkingDirectory = spec.ApplicationDirectory / ".." / ".." / ".." / ".." / "Project";
         }
 
         return new Tuplitor(spec);

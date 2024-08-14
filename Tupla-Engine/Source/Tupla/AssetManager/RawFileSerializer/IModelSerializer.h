@@ -1,4 +1,5 @@
 #pragma once
+#include "AssetPostProcessor.h"
 
 namespace Tupla
 {
@@ -16,11 +17,9 @@ namespace Tupla
 		CENTER_EACH_MESH // Center each mesh in fbx separately, when exporting each mesh as a subresource
 	};
 
-	class IModelSerializer
+	class IModelSerializer : public IAssetPostProcessor
 	{
 	public:
 		virtual ~IModelSerializer() = default;
-
-		virtual std::vector<Ref<Mesh>> SerializeModel(const std::string& aSourcePath) = 0;
 	};
 }

@@ -67,12 +67,7 @@ namespace CommonUtilities
 		return true;
 	}
 
-	bool RemoveFile(const char* aPath)
-	{
-		return std::filesystem::remove(aPath);
-	}
-
-	void FindAll(const char* aPath, std::vector<std::string>& aPaths, PathType aPathType, bool recursive)
+	void FindAll(const std::filesystem::path& aPath, std::vector<std::string>& aPaths, PathType aPathType, bool recursive)
 	{
 		for (const auto& entry : std::filesystem::directory_iterator(aPath))
 		{
@@ -121,6 +116,13 @@ namespace CommonUtilities
 	bool FileExists(const char* aPath)
 	{
 		return std::filesystem::exists(aPath);
+	}
+
+	size_t GetFileTimeStamp(const std::filesystem::path& aPath)
+	{
+		if (!exists(aPath))
+			return 0;
+		return last_write_time(aPath).time_since_epoch().count();
 	}
 
 	size_t GetFileTimeStamp(const char* aPath)

@@ -3,6 +3,11 @@
 #include <string>
 #include <vector>
 
+namespace std::filesystem
+{
+	class path;
+}
+
 namespace CommonUtilities
 {
 	enum class PathType
@@ -19,15 +24,14 @@ namespace CommonUtilities
 	size_t ReadFileBinary(const char *aPath, std::vector<std::byte>& aData, unsigned int aLength = ~0u, unsigned int aOffset = 0);
 	bool WriteFileBinary(const char* aPath, const std::byte* aData, unsigned int aLength, int aOffset = 0);
 
-	bool RemoveFile(const char* aPath);
-
-	void FindAll(const char* aPath, std::vector<std::string>& aPaths, PathType aPathType = PathType::File, bool recursive = true);
+	void FindAll(const std::filesystem::path& aPath, std::vector<std::string>& aPaths, PathType aPathType = PathType::File, bool recursive = true);
 
 	bool CreateDirectoriesForPath(const char* aPath);
 	bool CreateDirectories(const char* aPath);
 
 	bool FileExists(const char* aPath);
 
+	size_t GetFileTimeStamp(const std::filesystem::path& aPath);
 	size_t GetFileTimeStamp(const char* aPath);
 }
 

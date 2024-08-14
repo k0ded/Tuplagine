@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <cassert>
+#include <filesystem>
 
 #include "Layer.h"
 #include "LayerStack.h"
@@ -26,8 +27,8 @@ namespace Tupla
     struct ApplicationSpecification
     {
         WindowProps WindowProperties = { L"May the Tupla be with you... Always." };
-        std::string ApplicationDirectory;
-        std::string WorkingDirectory;
+        std::filesystem::path ApplicationDirectory;
+        std::filesystem::path WorkingDirectory;
         ApplicationCommandLineArgs CommandLineArgs;
     };
     

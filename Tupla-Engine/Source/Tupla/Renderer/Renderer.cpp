@@ -134,19 +134,19 @@ namespace Tupla
 
 	void Renderer::CreateDefaultPSO()
 	{
-        std::string defaultShaderPath = Application::Get().GetAssetManager().GetAssetPath("Internal/Default.hlsl");
+        std::filesystem::path defaultShaderPath = Application::Get().GetAssetManager().GetAssetPath("Internal/Default.hlsl");
 
         myDefaultVertexShader = CreateRef<Shader>();
         myDefaultPixelShader = CreateRef<Shader>();
 
         ComPtr<ID3DBlob> compiledCode {};
 
-        if (!myDefaultVertexShader->CompileShader(defaultShaderPath, ShaderType::VertexShader, {}, false, &compiledCode))
+        if (!myDefaultVertexShader->CompileShader(defaultShaderPath.string(), ShaderType::VertexShader, {}, false, &compiledCode))
         {
             LOG_CRITICAL("Failed to compile default vertex shader...");
         }
 
-		if(!myDefaultPixelShader->CompileShader(defaultShaderPath, ShaderType::PixelShader, {}, true))
+		if(!myDefaultPixelShader->CompileShader(defaultShaderPath.string(), ShaderType::PixelShader, {}, true))
 		{
             LOG_ERROR("Failed to compile default pixel shader...");
 		}

@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -16,7 +17,7 @@ namespace Tupla
 	{
 		AssetType Type = AssetType::Raw;
 		std::string Name;
-		std::string Path;
+		std::filesystem::path Path;
 
 		BrowserAsset* parentAsset = nullptr;
 		std::vector<BrowserAsset> myChildAssets{};

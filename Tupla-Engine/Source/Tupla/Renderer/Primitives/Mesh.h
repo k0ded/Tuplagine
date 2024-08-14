@@ -2,6 +2,8 @@
 #include <wrl.h>
 #include "../Primitives/Vertex.h"
 
+struct ID3D11Buffer;
+
 namespace Tupla
 {
 	class Mesh
